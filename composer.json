@@ -1,0 +1,19 @@
+{
+  "name": "rabbitcms/carrot",
+  "description": "Base library for RabbitCMD",
+  "require": {
+    "laravel/framework": "5.1.*"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Kulyk Dmytro",
+      "email": "lnkvisitor.ts@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Carrot\\": "src/"
+    }
+  }
+}
