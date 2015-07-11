@@ -1,4 +1,4 @@
-<?php namespace RabbitCMS\Carrot\Support;
+<?php namespace RabbitCMS\Carrot\Annotation;
 
 /**
  * Trait Permissions
