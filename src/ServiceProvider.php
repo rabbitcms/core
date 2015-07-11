@@ -1,5 +1,6 @@
 <?php namespace Carrot;
 
+use Carbon\Carbon;
 use Illuminate\Routing\Router;
 use Request;
 use Config;
@@ -15,7 +16,7 @@ class ServiceProvider extends BaseServiceProvider
         /**
          * @var ModuleProvider $module
          */
-        $this->app->singleton('backend.menu',function(){
+        $this->app->singleton('backend.menu', function () {
             return new BackendMenu();
         });
 
@@ -46,19 +47,24 @@ class ServiceProvider extends BaseServiceProvider
         if ($this->app->routesAreCached()) {
             $this->loadCachedRoutes();
         } else {
-            $frontendGroup = [];
             $locale = Request::segment(1);
+            $prefix = null;
+            $domain = config('app.domain');
             if (in_array($locale, Config::get('app.other_locales'))) {
                 \Lang::setLocale($locale);
-                \Carbon\Carbon::setLocale($locale);
-                $frontendGroup = [
-                    'prefix' => $locale
-                ];
+                Carbon::setLocale($locale);
+                $prefix = $locale;
             }
-            array_map(function (ModuleProvider $module) use ($router, $frontendGroup) {
-                $frontendGroup['as'] = $module->getName().'.';
-                $frontendGroup['namespace'] = $module->getNamespace().'Controllers';
-                $router->group($frontendGroup, function (Router $router) use ($module) {
+            array_map(function (ModuleProvider $module) use ($router, $prefix, $domain) {
+                $group = $module->config('route', []) + [
+                        'prefix'    => $prefix,
+                        'as'        => $module->getName().'.',
+                        'namespace' => $module->getNamespace().'Controllers'
+                    ];
+                if (isset($group['domain'])) {
+                    $group['domain'] = str_replace('{$domain}', $domain, $group['domain']);
+                }
+                $router->group($group, function (Router $router) use ($module) {
                     $module->routes($router);
                 });
             }, $this->modules);
@@ -66,7 +72,7 @@ class ServiceProvider extends BaseServiceProvider
             $backendGroup = config('cms.backend');
             $backendGroup['as'] = 'backend.';
             $backendGroup['middleware'] = ['auth'];
-            $router->group($backendGroup, function(Router $router){
+            $router->group($backendGroup, function (Router $router) {
                 array_map(function (ModuleProvider $module) use ($router) {
                     $group = $module->config('backend');
                     $group['namespace'] = $module->getNamespace().'Controllers\\Backend';
