@@ -1,5 +1,6 @@
 <?php namespace Carrot\Support;
 
+use Exception;
 use InvalidArgumentException;
 
 /**
@@ -27,16 +28,28 @@ trait PermissionsTrait
     }
 
     /**
+     * Get permissions from model
+     *
+     * @throws \Exception
      * @return array Array of permissions
      */
-    abstract protected function getPermissions();
+    protected function getPermissions()
+    {
+        throw new Exception(__METHOD__.' not implemented.');
+    }
 
     /**
+     * Save permissions to model
+     *
      * @param array $permissions
      *
+     * @throws \Exception
      * @return void
      */
-    abstract protected function setPermissions(array $permissions);
+    protected function setPermissions(array $permissions)
+    {
+        throw new Exception(__METHOD__.' not implemented.');
+    }
 
     /**
      * See if a user has access to the passed permission(s).
@@ -173,7 +186,7 @@ trait PermissionsTrait
      * @return void
      * @throw InvalidArgumentException
      */
-    public function setPermissionsAttribute(array $permissions)
+    public function storePermissions(array $permissions)
     {
         $allowedPermissionsValues = $this->getAllowedPermissionsValues();
         foreach ($permissions as $permission => $value) {
