@@ -1,11 +1,13 @@
-<?php namespace Carrot;
+<?php namespace Carrot\Providers;
 
 use Carbon\Carbon;
 use Illuminate\Routing\Router;
-use Request;
-use Config;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use Carrot\Support\BackendMenu;
 use Carrot\Support\ModuleProvider;
-use \Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
 class ServiceProvider extends BaseServiceProvider
 {
@@ -47,11 +49,12 @@ class ServiceProvider extends BaseServiceProvider
         if ($this->app->routesAreCached()) {
             $this->loadCachedRoutes();
         } else {
+
             $locale = Request::segment(1);
             $prefix = null;
             $domain = config('app.domain');
             if (in_array($locale, Config::get('app.other_locales'))) {
-                \Lang::setLocale($locale);
+                Lang::setLocale($locale);
                 Carbon::setLocale($locale);
                 $prefix = $locale;
             }
@@ -69,7 +72,7 @@ class ServiceProvider extends BaseServiceProvider
                 });
             }, $this->modules);
 
-            $backendGroup = config('cms.backend');
+            $backendGroup = Config::get('cms.backend');
             $backendGroup['as'] = 'backend.';
             $backendGroup['middleware'] = ['auth'];
             $router->group($backendGroup, function (Router $router) {

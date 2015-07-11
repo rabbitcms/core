@@ -1,4 +1,6 @@
-<?php namespace Carrot;
+<?php namespace Carrot\Support;
+
+use Illuminate\Support\Facades\Auth;
 
 class BackendMenu
 {
@@ -27,7 +29,7 @@ class BackendMenu
 
     public function getMenu()
     {
-        $user = \Auth::user();
+        $user = Auth::user();
         $menu = [];
         foreach ($this->menu as $name => $item) {
             if (empty($item['permissions']) || $user->hasAccess($item['permissions'])) {
