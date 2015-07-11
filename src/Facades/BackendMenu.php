@@ -1,4 +1,4 @@
-<?php namespace Carrot\Facades;
+<?php namespace RabbitCMS\Carrot\Facades;
 
 use Illuminate\Support\Facades\Facade;
 

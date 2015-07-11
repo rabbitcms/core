@@ -1,6 +1,6 @@
 {
   "name": "rabbitcms/carrot",
-  "description": "Base library for RabbitCMD",
+  "description": "Base library for RabbitCMS",
   "require": {
     "laravel/framework": "5.1.*"
   },
@@ -13,7 +13,7 @@
   ],
   "autoload": {
     "psr-4": {
-      "Carrot\\": "src/"
+      "RabbitCMS\\Carrot\\": "src/"
     }
   }
 }

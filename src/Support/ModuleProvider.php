@@ -1,4 +1,4 @@
-<?php namespace Carrot\Support;
+<?php namespace RabbitCMS\Carrot\Support;
 
 use Illuminate\Routing\Router;
 use Illuminate\Support\Arr;

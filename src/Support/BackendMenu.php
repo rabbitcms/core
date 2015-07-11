@@ -1,4 +1,4 @@
-<?php namespace Carrot\Support;
+<?php namespace RabbitCMS\Carrot\Support;
 
 use Illuminate\Support\Facades\Auth;
 

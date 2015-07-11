@@ -1,4 +1,4 @@
-<?php namespace Carrot\Providers;
+<?php namespace RabbitCMS\Carrot\Providers;
 
 use Carbon\Carbon;
 use Illuminate\Routing\Router;
@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
-use Carrot\Support\BackendMenu;
-use Carrot\Support\ModuleProvider;
+use RabbitCMS\Carrot\Support\BackendMenu;
+use RabbitCMS\Carrot\Support\ModuleProvider;
 
 class ServiceProvider extends BaseServiceProvider
 {
