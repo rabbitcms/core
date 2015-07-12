@@ -2,4 +2,6 @@
 .idea/
 vendor/
 composer.lock
+.phpstorm.meta.php
+_ide_helper.php
 
