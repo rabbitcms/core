@@ -56,7 +56,7 @@ class ServiceProvider extends BaseServiceProvider
                 $group = $module->config('route', []) + [
                         'prefix'    => $prefix,
                         'as'        => $module->getName().'.',
-                        'namespace' => $module->getNamespace().'Controllers'
+                        'namespace' => $module->getNamespace().'Http\Controllers'
                     ];
                 if (isset($group['domain'])) {
                     $group['domain'] = str_replace('{$domain}', $domain, $group['domain']);
