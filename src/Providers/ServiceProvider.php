@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use RabbitCMS\Carrot\Facades\ModuleLoader;
+use RabbitCMS\Carrot\Support\Layout;
 use RabbitCMS\Carrot\Support\ModuleLoader as ModuleLoaderImpl;
 use RabbitCMS\Carrot\Support\BackendMenu;
 use RabbitCMS\Carrot\Support\ModuleProvider;
@@ -18,6 +19,10 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register()
     {
+        $this->app->singleton('rabbitcms.layout', function () {
+            return new Layout();
+        });
+
         $this->app->singleton('backend.menu', function () {
             return new BackendMenu();
         });
@@ -47,16 +52,16 @@ class ServiceProvider extends BaseServiceProvider
             $locale = Request::segment(1);
             $prefix = null;
             $domain = config('app.domain');
-            if (in_array($locale, Config::get('app.other_locales'))) {
+            if (in_array($locale, Config::get('app.other_locales'), true)) {
                 Lang::setLocale($locale);
                 Carbon::setLocale($locale);
                 $prefix = $locale;
             }
             array_map(function (ModuleProvider $module) use ($router, $prefix, $domain) {
                 $group = $module->config('route', []) + [
-                        'prefix'    => $prefix,
-                        'as'        => $module->getName().'.',
-                        'namespace' => $module->getNamespace().'Http\Controllers'
+                        'prefix' => $prefix,
+                        'as' => $module->getName() . '.',
+                        'namespace' => $module->getNamespace() . 'Http\Controllers'
                     ];
                 if (isset($group['domain'])) {
                     $group['domain'] = str_replace('{$domain}', $domain, $group['domain']);
