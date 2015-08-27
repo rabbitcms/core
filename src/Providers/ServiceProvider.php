@@ -44,19 +44,20 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function boot(Router $router)
     {
+        $prefix = null;
+        $locale = Request::segment(1);
+        if (in_array($locale, Config::get('app.other_locales'), true)) {
+            Lang::setLocale($locale);
+            Carbon::setLocale($locale);
+            $prefix = $locale;
+        }
+
         ModuleLoader::bootModules();
 
         if ($this->app->routesAreCached()) {
             $this->loadCachedRoutes();
         } else {
-            $locale = Request::segment(1);
-            $prefix = null;
             $domain = config('app.domain');
-            if (in_array($locale, Config::get('app.other_locales'), true)) {
-                Lang::setLocale($locale);
-                Carbon::setLocale($locale);
-                $prefix = $locale;
-            }
             array_map(function (ModuleProvider $module) use ($router, $prefix, $domain) {
                 $group = $module->config('route', []) + [
                         'prefix' => $prefix,
