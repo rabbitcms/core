@@ -1,5 +1,7 @@
 <?php namespace RabbitCMS\Carrot\Support;
 
+use Illuminate\Foundation\AliasLoader;
+
 class ModuleLoader
 {
     /**
@@ -26,9 +28,6 @@ class ModuleLoader
 
     public function loadModules(array $modules)
     {
-        /**
-         * @var ModuleProvider $module
-         */
         foreach ($modules as $name) {
             $path = base_path('modules/' . $name);
             $composer = json_decode(file_get_contents($path . '/composer.json'), true);
@@ -40,8 +39,14 @@ class ModuleLoader
 
     public function registerModules()
     {
-        array_walk($this->modules, function (ModuleProvider $module) {
+        $aliasLoader = AliasLoader::getInstance();
+        array_walk($this->modules, function (ModuleProvider $module) use ($aliasLoader) {
             $module->register();
+            $aliases = $module->getAliases();
+            if (is_array($aliases)) {
+                $aliases = array_flip($aliases);
+                array_walk($aliases, [$aliasLoader, 'alias']);
+            }
         });
     }
 

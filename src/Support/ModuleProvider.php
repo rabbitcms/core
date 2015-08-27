@@ -10,6 +10,7 @@ abstract class ModuleProvider extends ServiceProvider
     protected $path;
     protected $namespace;
     protected $moduleConfig;
+    protected $aliases = [];
 
     /**
      * Create a new service provider instance.
@@ -34,6 +35,11 @@ abstract class ModuleProvider extends ServiceProvider
     public function getName()
     {
         return $this->name;
+    }
+
+    public function getAliases()
+    {
+        return $this->aliases;
     }
 
     public function config($key = null, $default = null)
