@@ -52,8 +52,6 @@ class ServiceProvider extends BaseServiceProvider
             $prefix = $locale;
         }
 
-        ModuleLoader::bootModules();
-
         if ($this->app->routesAreCached()) {
             $this->loadCachedRoutes();
         } else {
@@ -72,6 +70,8 @@ class ServiceProvider extends BaseServiceProvider
                 });
             }, ModuleLoader::getModules());
         }
+
+        ModuleLoader::bootModules();
     }
 
     /**
