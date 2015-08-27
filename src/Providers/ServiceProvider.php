@@ -52,8 +52,8 @@ class ServiceProvider extends BaseServiceProvider
             $prefix = $locale;
         }
 
-        if ($this->app->routesAreCached()) {
-            $this->loadCachedRoutes();
+        if ($this->routesAreCached($prefix)) {
+            $this->loadCachedRoutes($prefix);
         } else {
             $domain = config('app.domain');
             array_map(function (ModuleProvider $module) use ($router, $prefix, $domain) {
@@ -77,12 +77,35 @@ class ServiceProvider extends BaseServiceProvider
     /**
      * Load the cached routes for the application.
      *
+     * @param string $prefix
      * @return void
      */
-    protected function loadCachedRoutes()
+    protected function loadCachedRoutes($prefix = null)
     {
-        $this->app->booted(function () {
-            require $this->app->getCachedRoutesPath();
+        $this->app->booted(function () use ($prefix) {
+            require $this->getCachedRoutesPath($prefix);
         });
+    }
+
+    /**
+     * Determine if the application routes are cached.
+     *
+     * @param string $prefix
+     * @return bool
+     */
+    public function routesAreCached($prefix = null)
+    {
+        return $this->app->make('files')->exists($this->getCachedRoutesPath($prefix));
+    }
+
+    /**
+     * Get the path to the routes cache file.
+     *
+     * @param string $prefix
+     * @return string
+     */
+    public function getCachedRoutesPath($prefix = null)
+    {
+        return $this->app->basePath() . '/bootstrap/cache/routes' . ($prefix ? "-$prefix" : '') . '.php';
     }
 }
