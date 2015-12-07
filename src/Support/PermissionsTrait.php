@@ -88,10 +88,7 @@ trait PermissionsTrait
 
                     // We will make sure that the merged permission does not
                     // exactly match our permission, but starts with it.
-                    if ($checkPermission != $mergedPermission
-                        && starts_with($mergedPermission, $checkPermission)
-                        && $value == 1
-                    ) {
+                    if ($checkPermission != $mergedPermission && starts_with($mergedPermission, $checkPermission) && $value == 1) {
                         $matched = true;
                         break;
                     }
@@ -118,14 +115,11 @@ trait PermissionsTrait
 
                 foreach ($allPermissions as $mergedPermission => $value) {
                     // This time check if the mergedPermission ends in wildcard "*" symbol.
-                    if ((strlen($mergedPermission) > 1)
-                        && ends_with($mergedPermission, '*')
-                    ) {
+                    if ((strlen($mergedPermission) > 1) && ends_with($mergedPermission, '*')) {
                         $matched = false;
 
                         // Strip the '*' off the end of the permission.
-                        $checkMergedPermission = substr($mergedPermission, 0,
-                            -1);
+                        $checkMergedPermission = substr($mergedPermission, 0, -1);
 
                         // We will make sure that the merged permission does not
                         // exactly match our permission, but starts with it.

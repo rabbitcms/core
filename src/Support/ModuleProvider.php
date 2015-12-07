@@ -53,12 +53,12 @@ abstract class ModuleProvider extends ServiceProvider
 
     public function register()
     {
-        $this->loadViewsFrom($this->path.'/views', $this->name);
+        $this->loadViewsFrom($this->path . '/views', $this->name);
     }
 
     public function boot()
     {
-        $this->loadTranslationsFrom($this->path.'/lang', $this->name);
+        $this->loadTranslationsFrom($this->path . '/lang', $this->name);
     }
 
     public function routes(Router $router)
@@ -69,5 +69,17 @@ abstract class ModuleProvider extends ServiceProvider
     public function backendRoutes(Router $router)
     {
 
+    }
+
+    protected function widget($name, $class)
+    {
+        Widget::register($this->name . '::widgets.' . $name, $class);
+    }
+
+    protected function widgets(array $widgets)
+    {
+        foreach ($widgets as $name => $class) {
+            $this->widget($name, $class);
+        }
     }
 }
