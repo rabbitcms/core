@@ -21,6 +21,7 @@
       "RabbitCMS\\Carrot\\": "src/"
     },
     "files": [
+      "src/Support/helpers.php",
       "src/Support/Annotations.php"
     ]
   }

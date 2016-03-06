@@ -10,6 +10,11 @@ abstract class ModuleProvider extends ServiceProvider
     protected $module;
 
     /**
+     * @var \Pingpong\Modules\Repository
+     */
+    protected $moduleManager;
+
+    /**
      * Fetch module name
      *
      * @return string
@@ -19,7 +24,8 @@ abstract class ModuleProvider extends ServiceProvider
     public function __construct(\Illuminate\Contracts\Foundation\Application $app)
     {
         parent::__construct($app);
-        $this->module = $this->app->make('modules')->get($this->name());
+        $this->moduleManager = $this->app->make('modules');
+        $this->module = $this->moduleManager->get($this->name());
     }
 
     /**
@@ -30,6 +36,11 @@ abstract class ModuleProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerTranslations();
         $this->registerViews();
+        $path = $this->moduleManager->getAssetsPath().'/'.$this->module->getLowerName();
+        $public = $this->module->getExtraPath('public');
+        if (is_dir($public) && !file_exists($path)) {
+            symlink($public, $path);
+        }
     }
 
     /**
