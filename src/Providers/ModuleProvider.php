@@ -37,7 +37,7 @@ abstract class ModuleProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerViews();
         $path = $this->moduleManager->getAssetsPath().'/'.$this->module->getLowerName();
-        $public = $this->module->getExtraPath('public');
+        $public = $this->module->getExtraPath('Assets');
         if (is_dir($public) && !file_exists($path)) {
             symlink($public, $path);
         }
