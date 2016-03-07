@@ -33,7 +33,7 @@ trait PermissionsTrait
      * @throws \Exception
      * @return array Array of permissions
      */
-    protected function getPermissions()
+    public function getPermissions()
     {
         throw new Exception(__METHOD__.' not implemented.');
     }
