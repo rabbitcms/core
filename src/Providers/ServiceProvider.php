@@ -1,11 +1,17 @@
 <?php namespace RabbitCMS\Carrot\Providers;
 
 use Illuminate\Routing\UrlGenerator;
-use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
+use RabbitCMS\Carrot\Support\Bower;
 use RabbitCMS\Carrot\Support\Layout;
 
-class ServiceProvider extends BaseServiceProvider
+class ServiceProvider extends IlluminateServiceProvider
 {
+    /**
+     * {@inheritdoc}
+     */
+    protected $defer = true;
+
     /**
      *
      */
@@ -15,18 +21,26 @@ class ServiceProvider extends BaseServiceProvider
             return new Layout();
         });
 
-        $this->registerUrlGenerator();
+        $this->registerBower();
     }
 
     /**
-     * Register the URL generator service.
+     * Register Bower.
      *
      * @return void
      */
-    protected function registerUrlGenerator()
+    protected function registerBower()
     {
-        UrlGenerator::macro('assetModule', function ($module, $asset) {
-            return $this->asset('modules/' . $module . '/assets/' . $asset);
+        $this->app->singleton('rabbitcms.bower', function () {
+            return new Bower();
         });
+    }
+
+    public function provides()
+    {
+        return [
+            'rabbitcms.bower',
+            'rabbitcms.layout',
+        ];
     }
 }

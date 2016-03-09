@@ -2,7 +2,9 @@
 
 namespace RabbitCMS\Carrot\Providers;
 
-abstract class ModuleProvider extends ServiceProvider
+use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
+
+abstract class ModuleProvider extends IlluminateServiceProvider
 {
     /**
      * @var \Pingpong\Modules\Module
