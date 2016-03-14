@@ -53,11 +53,11 @@ abstract class ModuleProvider extends IlluminateServiceProvider
         $configPath = $this->module->getExtraPath('Config/config.php');
 
         $this->mergeConfigFrom(
-            $configPath, "modules.{$this->module->getLowerName()}"
+            $configPath, "module.{$this->module->getLowerName()}"
         );
 
         $this->publishes([
-            $configPath => config_path("modules/{$this->module->getLowerName()}.php"),
+            $configPath => config_path("module/{$this->module->getLowerName()}.php"),
         ]);
     }
 

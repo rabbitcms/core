@@ -2,12 +2,15 @@
 
 namespace RabbitCMS\Carrot\Http;
 
+use Illuminate\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\App;
 use Illuminate\View\View;
 use Pingpong\Modules\Module;
 
@@ -15,13 +18,50 @@ abstract class ModuleController extends BaseController
 {
     use DispatchesJobs, ValidatesRequests;
 
+    /**
+     * @var Application $app
+     */
+    protected $app;
+
+    /**
+     * @var string
+     */
     protected $module = '';
+
+    /**
+     * @var ConfigRepository
+     */
+    protected $config;
 
     protected $cache = false;
 
-    public function __construct(Container $container)
+    public function __construct(Application $app)
     {
-        $this->module = $container->make('modules')->get($this->module);
+        $this->app = $app;
+        $this->config = $app->make('config');
+    }
+
+    public function module()
+    {
+        static $module = null;
+        if ($module === null) {
+            $module = $this->app->make('modules')->get($this->module);
+        }
+
+        return $module;
+    }
+
+    /**
+     * Get the specified configuration value.
+     *
+     * @param  string $key
+     * @param  mixed  $default
+     *
+     * @return mixed
+     */
+    public function config($key, $default = null)
+    {
+        return $this->config->get("module.{$this->module()->getLowerName()}.$key", $default);
     }
 
     /**
@@ -32,7 +72,7 @@ abstract class ModuleController extends BaseController
      */
     protected function view($view, array $data = [])
     {
-        return app('view')->make($this->module->getLowerName().'::'.$view, $data, []);
+        return app('view')->make($this->module()->getLowerName().'::'.$view, $data, []);
     }
 
     /**
@@ -42,7 +82,7 @@ abstract class ModuleController extends BaseController
      */
     protected function asset($path)
     {
-        return asset_module($path, $this->module->getLowerName());
+        return asset_module($path, $this->module()->getLowerName());
     }
 
     /**
