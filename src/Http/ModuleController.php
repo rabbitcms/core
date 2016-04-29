@@ -3,14 +3,10 @@
 namespace RabbitCMS\Carrot\Http;
 
 use Illuminate\Config\Repository as ConfigRepository;
-use Illuminate\Contracts\Container\Container;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Http\Response;
-use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Routing\Router;
-use Illuminate\Support\Facades\App;
+use Illuminate\Routing\Controller as BaseController;
 use Illuminate\View\View;
 use Pingpong\Modules\Module;
 
@@ -33,22 +29,24 @@ abstract class ModuleController extends BaseController
      */
     protected $config;
 
-    protected $cache = false;
+    /**
+     * @var integer|float
+     */
+    protected $cache = 0;
 
     public function __construct(Application $app)
     {
         $this->app = $app;
         $this->config = $app->make('config');
+        $this->init();
     }
 
-    public function module()
+    /**
+     * Initialize controller.
+     */
+    protected function init()
     {
-        static $module = null;
-        if ($module === null) {
-            $module = $this->app->make('modules')->get($this->module);
-        }
 
-        return $module;
     }
 
     /**
@@ -65,24 +63,16 @@ abstract class ModuleController extends BaseController
     }
 
     /**
-     * @param string $view
-     * @param array  $data
-     *
-     * @return View
+     * @return Module
      */
-    protected function view($view, array $data = [])
+    public function module()
     {
-        return app('view')->make($this->module()->getLowerName().'::'.$view, $data, []);
-    }
+        static $module = null;
+        if ($module === null) {
+            $module = $this->app->make('modules')->get($this->module);
+        }
 
-    /**
-     * @param string $path
-     *
-     * @return string
-     */
-    protected function asset($path)
-    {
-        return asset_module($path, $this->module()->getLowerName());
+        return $module;
     }
 
     /**
@@ -96,12 +86,33 @@ abstract class ModuleController extends BaseController
     public function callAction($method, $parameters)
     {
         $response = parent::callAction($method, $parameters);
-        if ($this->cache !== false) {
-            $response = \Route::prepareResponse(\App::make('request'), $response);
+        if ($this->cache > 0) {
+            $response = \Route::prepareResponse($this->app->make('request'), $response);
             $response->headers->addCacheControlDirective('public');
-            $response->headers->addCacheControlDirective('max-age', $this->cache * 60);
+            $response->headers->addCacheControlDirective('max-age', floor($this->cache * 60));
         }
 
         return $response;
+    }
+
+    /**
+     * @param string $view
+     * @param array  $data
+     *
+     * @return View
+     */
+    protected function view($view, array $data = [])
+    {
+        return $this->app->make('view')->make($this->module()->getLowerName() . '::' . $view, $data, []);
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return string
+     */
+    protected function asset($path)
+    {
+        return asset_module($path, $this->module()->getLowerName());
     }
 }
