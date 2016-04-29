@@ -38,16 +38,11 @@ abstract class ModuleController extends BaseController
     {
         $this->app = $app;
         $this->config = $app->make('config');
-        $this->init();
+        if (method_exists($this, 'init')) {
+            $this->app->call([$this, 'init']);
+        }
     }
 
-    /**
-     * Initialize controller.
-     */
-    protected function init()
-    {
-
-    }
 
     /**
      * Get the specified configuration value.
