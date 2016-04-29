@@ -38,7 +38,7 @@ abstract class ModuleController extends BaseController
     {
         $this->app = $app;
         $this->config = $app->make('config');
-        $this->init();
+        $this->app->call([$this,'init']);
     }
 
     /**
