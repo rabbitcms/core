@@ -4,16 +4,12 @@ namespace RabbitCMS\Carrot\Http;
 
 use Illuminate\Config\Repository as ConfigRepository;
 use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\View\View;
 use Pingpong\Modules\Module;
 
 abstract class ModuleController extends BaseController
 {
-    use DispatchesJobs, ValidatesRequests;
-
     /**
      * @var Application $app
      */
@@ -34,6 +30,11 @@ abstract class ModuleController extends BaseController
      */
     protected $cache = 0;
 
+    /**
+     * ModuleController constructor.
+     *
+     * @param Application $app
+     */
     public function __construct(Application $app)
     {
         $this->app = $app;
@@ -42,7 +43,6 @@ abstract class ModuleController extends BaseController
             $this->app->call([$this, 'init']);
         }
     }
-
 
     /**
      * Get the specified configuration value.
@@ -58,6 +58,8 @@ abstract class ModuleController extends BaseController
     }
 
     /**
+     * Get module.
+     *
      * @return Module
      */
     public function module()
