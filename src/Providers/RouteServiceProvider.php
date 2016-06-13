@@ -3,18 +3,10 @@
 namespace RabbitCMS\Carrot\Providers;
 
 use Illuminate\Routing\Router;
+use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
-class RouteServiceProvider extends ServiceProvider
+class RouteServiceProvider extends BaseServiceProvider
 {
-    /**
-     * This namespace is applied to the controller routes in your routes file.
-     *
-     * In addition, it is set as the URL generator's root namespace.
-     *
-     * @var string
-     */
-    protected $namespace = 'App\Http\Controllers';
-
     /**
      * Define your route model bindings, pattern filters, etc.
      *
@@ -24,37 +16,17 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(Router $router)
     {
-        //
-
-        parent::boot($router);
+        $router->group([], function (Router $router) {
+            array_map(function (\Pingpong\Modules\Module $module) use ($router) {
+                if (file_exists($path = $module->getExtraPath('Http/routes.php'))) {
+                    require($path);
+                }
+            }, \Module::enabled());
+        });
     }
 
-    /**
-     * Define the routes for the application.
-     *
-     * @param  \Illuminate\Routing\Router $router
-     *
-     * @return void
-     */
-    public function map(Router $router)
+    public function register()
     {
-        $router->group(['middleware' => ['api']], function (Router $router) {
-
-            $router->group(
-                ['namespace' => $this->namespace],
-                function (Router $router) use ($jsonRpcServer) {
-                    require app_path('Http/routes.php');
-                }
-            );
-            foreach ($this->app->make('modules')->getOrdered() as $module) {
-                /* @var \Pingpong\Modules\Module $module */
-                $autoload = $module->getComposerAttr('autoload');
-                if (array_key_exists('psr-4', $autoload) && is_array($autoload['psr-4']) && count($autoload['psr-4']) > 0) {
-                    $namespace = key($autoload['psr-4']).'\Http\Controllers';
-                } else {
-                    $namespace = '';
-                }
-            }
-        });
+        
     }
 }
