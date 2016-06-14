@@ -1,15 +1,15 @@
 <?php namespace RabbitCMS\Carrot\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use RabbitCMS\Carrot\Repository\BackendMenu as BackendMenuRepository;
+use RabbitCMS\Carrot\Repository\BackendAcl as BackendACLRepository;
 
-class BackendMenu extends Facade
+class BackendAcl extends Facade
 {
     /**
      * @inheritdoc
      */
     protected static function getFacadeAccessor()
     {
-        return BackendMenuRepository::class;
+        return BackendACLRepository::class;
     }
 }

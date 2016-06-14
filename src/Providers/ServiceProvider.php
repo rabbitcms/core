@@ -1,46 +1,65 @@
 <?php namespace RabbitCMS\Carrot\Providers;
 
-use Illuminate\Routing\UrlGenerator;
+use Illuminate\Foundation\AliasLoader;
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
-use RabbitCMS\Carrot\Support\Bower;
-use RabbitCMS\Carrot\Support\Layout;
+use Pingpong\Modules\Module;
+use RabbitCMS\Carrot\Facades\BackendAcl;
+use RabbitCMS\Carrot\Facades\BackendMenu;
+use RabbitCMS\Carrot\Repository\BackendAcl as BackendAclRepository;
+use RabbitCMS\Carrot\Repository\BackendMenu as BackendMenuRepository;
 
 class ServiceProvider extends IlluminateServiceProvider
 {
-    /**
-     * {@inheritdoc}
-     */
-    protected $defer = true;
-
-    /**
-     *
-     */
-    public function register()
+    public function boot(Router $router)
     {
-        $this->app->singleton('rabbitcms.layout', function () {
-            return new Layout();
-        });
-
-        $this->registerBower();
+        $router->group(
+            [],
+            function (Router $router) {
+                array_map(
+                    function (Module $module) use ($router) {
+                        if (file_exists($path = $module->getExtraPath('Http/routes.php'))) {
+                            //$autoload = $module->getComposerAttr('autoload');
+                            //if (array_key_exists('psr-4', $autoload) && is_array($autoload['psr-4']) && count($autoload['psr-4']) > 0) {
+                            //    $namespace = key($autoload['psr-4']).'\Http\Controllers';
+                            //} else {
+                            //    $namespace = '';
+                            //}
+                            require($path);
+                        }
+                    },
+                    \Module::enabled()
+                );
+            }
+        );
     }
 
-    /**
-     * Register Bower.
-     *
-     * @return void
-     */
-    protected function registerBower()
+    public function register()
     {
-        $this->app->singleton('rabbitcms.bower', function () {
-            return new Bower();
-        });
+        $this->app->bind(
+            BackendMenuRepository::class,
+            function () {
+                return new BackendMenuRepository($this->app);
+            },
+            true
+        );
+
+        $this->app->bind(
+            BackendAclRepository::class,
+            function () {
+                return new BackendAclRepository($this->app);
+            },
+            true
+        );
+
+        $loader = AliasLoader::getInstance();
+        $loader->alias('BackendMenu', BackendMenu::class);
+        $loader->alias('BackendAcl', BackendAcl::class);
     }
 
     public function provides()
     {
         return [
-            'rabbitcms.bower',
-            'rabbitcms.layout',
         ];
     }
 }

@@ -2,7 +2,8 @@
   "name": "rabbitcms/carrot",
   "description": "Base library for RabbitCMS",
   "require": {
-    "laravel/framework": "5.1.x|5.2.x",
+    "laravel/framework": "5.2.x",
+    "pingpong/modules": "^2.2",
     "doctrine/annotations": "1.*"
   },
   "license": "MIT",
