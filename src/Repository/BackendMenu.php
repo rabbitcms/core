@@ -2,6 +2,7 @@
 namespace RabbitCMS\Carrot\Repository;
 
 use Illuminate\Contracts\Container\Container;
+use RabbitCMS\Carrot\Contracts\HasAccessEntity;
 
 class BackendMenu
 {
@@ -37,6 +38,11 @@ class BackendMenu
      * @var string
      */
     protected $active;
+
+    /**
+     * @var bool
+     */
+    protected $changed = false;
 
     /**
      * BackendMenuRepository constructor.
@@ -91,26 +97,36 @@ class BackendMenu
             );
         }
 
+        if ($this->changed) {
+            $this->sort($this->menu);
+            $this->changed = false;
+        }
+
+        return $this->menu;
+    }
+
+    /**
+     * Sort menu items.
+     *
+     * @param array $items
+     *
+     * @return void
+     */
+    protected function sort(array &$items)
+    {
         uasort(
-            $this->menu,
+            $items,
             function (array $a, array $b) {
                 return $a['position'] > $b['position'];
             }
         );
 
         array_walk(
-            $this->menu,
-            function (&$menu) {
-                uasort(
-                    $menu['items'],
-                    function (array $a, array $b) {
-                        return $a['position'] > $b['position'];
-                    }
-                );
+            $items,
+            function (&$item) {
+                $this->sort($item['items']);
             }
         );
-
-        return $this->menu;
     }
 
     /**
@@ -141,6 +157,7 @@ class BackendMenu
      */
     public function addItem($parent, $name, $caption, $url, $icon = null, array $permissions = null, $position = 0)
     {
+        $this->changed = true;
         $menu = ['items' => &$this->menu];
         if ($parent === null) {
             $path = $name;
@@ -164,6 +181,58 @@ class BackendMenu
         $items = [];
 
         $menu['items'][$name] = compact('caption', 'url', 'permissions', 'icon', 'name', 'position', 'path', 'items');
+    }
+
+    /**
+     * Get allowed menu.
+     *
+     * @param string $guard [optional]
+     *
+     * @return array
+     */
+    public function getAccessMenu($guard = null)
+    {
+        $user = \Auth::guard($guard)->user();
+        if (!($user instanceof HasAccessEntity)) {
+            return [];
+        }
+
+        return $this->accessFilter($user, $this->getMenu());
+    }
+
+    /**
+     * Check items permissions.
+     *
+     * @param \RabbitCMS\Carrot\Contracts\HasAccessEntity $user
+     * @param array                                       $items
+     *
+     * @return array
+     */
+    protected function accessFilter(HasAccessEntity $user, array $items)
+    {
+        $filteredItems = array_filter(
+            $items,
+            function ($item) use ($user) {
+                return $item['permissions'] === null || $user->hasAccess($item['permissions'], false);
+            }
+        );
+
+        array_walk(
+            $filteredItems,
+            function (&$item) use ($user) {
+                if (count($item['items']) > 0) {
+                    $item['items'] = $this->accessFilter($user, $item['items']);
+                }
+            }
+        );
+
+        //cleanup empty menus
+        return array_filter(
+            $filteredItems,
+            function ($item) use ($user) {
+                return $item['url'] !== null || count($item['items']) > 0;
+            }
+        );
     }
 
     /**
