@@ -24,13 +24,17 @@ class AclToGateProvider extends ServiceProvider
      */
     public function boot(Gate $gate, BackendAcl $acl)
     {
-        foreach ($acl->getAll() as $acl => $label) {
-            $gate->define(
-                $acl,
-                function (HasAccessEntity $user) use ($acl) {
-                    return $user->hasAccess($acl);
+        \App::booted(
+            function () use ($gate, $acl) {
+                foreach ($acl->getAll() as $acl => $label) {
+                    $gate->define(
+                        $acl,
+                        function (HasAccessEntity $user) use ($acl) {
+                            return $user->hasAccess($acl);
+                        }
+                    );
                 }
-            );
-        }
+            }
+        );
     }
 }
