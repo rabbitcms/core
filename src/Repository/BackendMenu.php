@@ -75,61 +75,6 @@ class BackendMenu
     }
 
     /**
-     * Get menu definitions.
-     *
-     * @return array
-     */
-    public function getMenu()
-    {
-        if ($this->menu === null) {
-            $this->menu = [];
-            array_walk(
-                $this->menuResolvers,
-                function ($callback) {
-                    $this->container->call($callback, [$this]);
-                }
-            );
-            array_walk(
-                $this->itemResolvers,
-                function ($callback) {
-                    $this->container->call($callback, [$this]);
-                }
-            );
-        }
-
-        if ($this->changed) {
-            $this->sort($this->menu);
-            $this->changed = false;
-        }
-
-        return $this->menu;
-    }
-
-    /**
-     * Sort menu items.
-     *
-     * @param array $items
-     *
-     * @return void
-     */
-    protected function sort(array &$items)
-    {
-        uasort(
-            $items,
-            function (array $a, array $b) {
-                return $a['position'] > $b['position'];
-            }
-        );
-
-        array_walk(
-            $items,
-            function (&$item) {
-                $this->sort($item['items']);
-            }
-        );
-    }
-
-    /**
      * Define backend menu.
      *
      * @param string      $name
@@ -236,6 +181,61 @@ class BackendMenu
     }
 
     /**
+     * Get menu definitions.
+     *
+     * @return array
+     */
+    public function getMenu()
+    {
+        if ($this->menu === null) {
+            $this->menu = [];
+            array_walk(
+                $this->menuResolvers,
+                function ($callback) {
+                    $this->container->call($callback, [$this]);
+                }
+            );
+            array_walk(
+                $this->itemResolvers,
+                function ($callback) {
+                    $this->container->call($callback, [$this]);
+                }
+            );
+        }
+
+        if ($this->changed) {
+            $this->sort($this->menu);
+            $this->changed = false;
+        }
+
+        return $this->menu;
+    }
+
+    /**
+     * Sort menu items.
+     *
+     * @param array $items
+     *
+     * @return void
+     */
+    protected function sort(array &$items)
+    {
+        uasort(
+            $items,
+            function (array $a, array $b) {
+                return $a['position'] > $b['position'];
+            }
+        );
+
+        array_walk(
+            $items,
+            function (&$item) {
+                $this->sort($item['items']);
+            }
+        );
+    }
+
+    /**
      * Set active path.
      *
      * @param $path
@@ -255,5 +255,23 @@ class BackendMenu
     public function isActive(array $item)
     {
         return preg_match('/^' . preg_quote($item['path']) . '/', $this->active) != 0;
+    }
+
+    /**
+     * Get active items.
+     *
+     * @return array
+     */
+    public function getActiveItems()
+    {
+        $path = explode('.', $this->active);
+        $items = $this->getMenu();
+        $result = [];
+        while (count($path) > 0 && array_key_exists($path[0], $items)) {
+            $item = $result[] = $items[array_shift($path)];
+            $items = $item['items'];
+        }
+
+        return $result;
     }
 }
