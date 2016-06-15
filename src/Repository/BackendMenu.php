@@ -185,6 +185,6 @@ class BackendMenu
      */
     public function isActive(array $item)
     {
-        return preg_match('/^' . preg_quote($this->active) . '/', $item['path']) != 0;
+        return preg_match('/^' . preg_quote($item['path']) . '/', $this->active) != 0;
     }
 }
