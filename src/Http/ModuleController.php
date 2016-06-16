@@ -100,7 +100,7 @@ abstract class ModuleController extends BaseController
      */
     protected function view($view, array $data = [])
     {
-        return $this->app->make('view')->make($this->viewName($view) . '::' . $view, $data, []);
+        return $this->app->make('view')->make($this->viewName($view), $data, []);
     }
 
     /**
