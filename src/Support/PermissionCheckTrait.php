@@ -2,10 +2,10 @@
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Response;
 use RabbitCMS\Carrot\Annotation\Permissions;
+use RabbitCMS\Carrot\Contracts\HasAccessEntity;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
@@ -27,11 +27,11 @@ trait PermissionCheckTrait
     public function callAction($method, $parameters)
     {
         /**
-         * @var User|PermissionsTrait|null $user
-         * @var Permissions                $annotation
+         * @var HasAccessEntity|PermissionsTrait|null $user
+         * @var Permissions                           $annotation
          */
         try {
-            $user = Auth::user();
+            $user = \Auth::guard(property_exists($this, 'guard') ? $this->guard : null)->user();
             $reader = new AnnotationReader();
             $class = new \ReflectionClass($this);
             $annotation = $reader->getClassAnnotation($class, Permissions::class);
@@ -49,16 +49,20 @@ trait PermissionCheckTrait
                     throw new AccessDeniedHttpException;
                 }
             }
-    
         } catch (AccessDeniedHttpException $e) {
             if (Request::ajax()) {
-                return Response::json([
-                    'error' => $e->getMessage(),
-                    'file'  => $e->getFile(),
-                    'line'  => $e->getLine()
-                ], 403, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+                return Response::json(
+                    [
+                        'error' => $e->getMessage(),
+                        'file'  => $e->getFile(),
+                        'line'  => $e->getLine(),
+                    ],
+                    403,
+                    [],
+                    JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
+                );
             } else {
-                return view('backend.deny');
+                return view(property_exists($this, 'denyView') ? $this->denyView : 'deny');
             }
         }
 
