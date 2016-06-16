@@ -3,11 +3,11 @@
 namespace RabbitCMS\Carrot\Providers;
 
 use Illuminate\Contracts\Auth\Access\Gate;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\ServiceProvider as LaravelServiceProvider;
 use RabbitCMS\Carrot\Contracts\HasAccessEntity;
 use RabbitCMS\Carrot\Repository\BackendAcl;
 
-class AclToGateProvider extends ServiceProvider
+class AclToGateProvider extends LaravelServiceProvider
 {
     /**
      * @inheritdoc
