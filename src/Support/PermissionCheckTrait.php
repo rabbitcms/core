@@ -36,17 +36,25 @@ trait PermissionCheckTrait
             $class = new \ReflectionClass($this);
             $annotation = $reader->getClassAnnotation($class, Permissions::class);
 
-            if ($user instanceof PermissionsTrait && !empty($annotation)) {
-                if (!$user->hasAccess($annotation->permissions, $annotation->all)) {
-                    throw new AccessDeniedHttpException;
+            if ($annotation instanceof Permissions) {
+                if ($user instanceof HasAccessEntity) {
+                    if (!$user->hasAccess($annotation->permissions, $annotation->all)) {
+                        throw new AccessDeniedHttpException;
+                    }
+                } else {
+                    throw new \RuntimeException('User must implements HasAccessEntity');
                 }
             }
 
             $method = $class->getMethod($method);
             $annotation = $reader->getMethodAnnotation($method, Permissions::class);
-            if (!empty($annotation)) {
-                if (!$user->hasAccess($annotation->permissions, $annotation->all)) {
-                    throw new AccessDeniedHttpException;
+            if ($annotation instanceof Permissions) {
+                if ($user instanceof HasAccessEntity) {
+                    if (!$user->hasAccess($annotation->permissions, $annotation->all)) {
+                        throw new AccessDeniedHttpException;
+                    }
+                } else {
+                    throw new \RuntimeException('User must implements HasAccessEntity');
                 }
             }
         } catch (AccessDeniedHttpException $e) {
