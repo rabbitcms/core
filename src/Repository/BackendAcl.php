@@ -143,8 +143,9 @@ class BackendAcl
         $rule = '/^' . preg_quote($group . '.' . ($acl ? $acl . '.' : '')) . '/';
 
         $result = [];
+
         foreach ($this->getAll() as $key => $value) {
-            if (!preg_match($rule, $key)) {
+            if (preg_match($rule, $key)) {
                 $result[$key] = $value;
             }
         }
