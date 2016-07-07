@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Facade;
 use RabbitCMS\Carrot\Repository\BackendMenu as BackendMenuRepository;
 
+/**
+ * Class BackendMenu.
+ * @deprecated
+ */
 class BackendMenu extends Facade
 {
     /**

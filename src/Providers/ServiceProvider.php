@@ -4,6 +4,7 @@ use Illuminate\Foundation\AliasLoader;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Pingpong\Modules\Module;
+use RabbitCMS\Backend\Support\Backend;
 use RabbitCMS\Carrot\Facades\BackendAcl;
 use RabbitCMS\Carrot\Facades\BackendMenu;
 use RabbitCMS\Carrot\Repository\BackendAcl as BackendAclRepository;
@@ -39,7 +40,7 @@ class ServiceProvider extends IlluminateServiceProvider
         $this->app->bind(
             BackendMenuRepository::class,
             function () {
-                return new BackendMenuRepository($this->app);
+                return new BackendMenuRepository($this->app->make(Backend::class));
             },
             true
         );
@@ -47,7 +48,7 @@ class ServiceProvider extends IlluminateServiceProvider
         $this->app->bind(
             BackendAclRepository::class,
             function () {
-                return new BackendAclRepository($this->app);
+                return new BackendAclRepository($this->app->make(Backend::class));
             },
             true
         );

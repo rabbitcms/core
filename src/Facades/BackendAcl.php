@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Facade;
 use RabbitCMS\Carrot\Repository\BackendAcl as BackendACLRepository;
 
+/**
+ * Class BackendAcl.
+ * @deprecated
+ */
 class BackendAcl extends Facade
 {
     /**

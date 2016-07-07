@@ -2,47 +2,27 @@
 
 namespace RabbitCMS\Carrot\Repository;
 
-use Illuminate\Contracts\Container\Container;
+use RabbitCMS\Backend\Support\Backend;
 
 /**
  * Class BackendAcl.
+ * @deprecated
  */
 class BackendAcl
 {
     /**
-     * ACL resolvers.
-     *
-     * @var (string|callable)[]
+     * @var Backend
      */
-    protected $aclResolvers = [];
-
-    /**
-     * @var Container
-     */
-    protected $container;
-
-    /**
-     * Acl list.
-     *
-     * @var array
-     */
-    protected $acl = null;
-
-    /**
-     * Group list.
-     *
-     * @var array
-     */
-    protected $groups = [];
+    protected $backend;
 
     /**
      * BackendAcl constructor.
      *
-     * @param \Illuminate\Contracts\Container\Container $container
+     * @param Backend $backend
      */
-    public function __construct(Container $container)
+    public function __construct(Backend $backend)
     {
-        $this->container = $container;
+        $this->backend = $backend;
     }
 
     /**
@@ -52,7 +32,7 @@ class BackendAcl
      */
     public function addAclResolver($callback)
     {
-        $this->aclResolvers[] = $callback;
+        $this->backend->addAclResolver($callback);
     }
 
     /**
@@ -63,10 +43,7 @@ class BackendAcl
      */
     public function addGroup($group, $label)
     {
-        if (array_key_exists($group, $this->groups)) {
-            throw  new \RuntimeException(sprintf('Acl group with name "%s" already exist.', $group));
-        }
-        $this->groups[$group] = $label;
+        $this->backend->addAclGroup($group, $label);
     }
 
     /**
@@ -78,10 +55,7 @@ class BackendAcl
      */
     public function addAcl($group, $name, $label)
     {
-        if (!array_key_exists($group, $this->groups)) {
-            throw  new \RuntimeException(sprintf('Acl group with name "%s" not found.', $group));
-        }
-        $this->acl[$group . '.' . $name] = $label;
+        $this->backend->addAcl($group, $name, $label);
     }
 
     /**
@@ -91,9 +65,7 @@ class BackendAcl
      */
     public function getGroups()
     {
-        $this->getAll();
-
-        return $this->groups;
+        return $this->backend->getAclGroups();
     }
 
     /**
@@ -103,17 +75,7 @@ class BackendAcl
      */
     public function getAll()
     {
-        if ($this->acl === null) {
-            $this->acl = [];
-            array_walk(
-                $this->aclResolvers,
-                function ($callback) {
-                    $this->container->call($callback, [$this]);
-                }
-            );
-        }
-
-        return $this->acl;
+        return $this->backend->getAllAcl();
     }
 
     /**
@@ -140,16 +102,6 @@ class BackendAcl
      */
     public function getGroupPermissions($group, $acl = null)
     {
-        $rule = '/^' . preg_quote($group . '.' . ($acl ? $acl . '.' : '')) . '/';
-
-        $result = [];
-
-        foreach ($this->getAll() as $key => $value) {
-            if (preg_match($rule, $key)) {
-                $result[$key] = $value;
-            }
-        }
-
-        return $result;
+        return $this->backend->getGroupPermissions($group, $acl);
     }
 }
