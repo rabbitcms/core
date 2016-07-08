@@ -1,14 +1,8 @@
 <?php namespace RabbitCMS\Carrot\Providers;
 
-use Illuminate\Foundation\AliasLoader;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Pingpong\Modules\Module;
-use RabbitCMS\Backend\Support\Backend;
-use RabbitCMS\Carrot\Facades\BackendAcl;
-use RabbitCMS\Carrot\Facades\BackendMenu;
-use RabbitCMS\Carrot\Repository\BackendAcl as BackendAclRepository;
-use RabbitCMS\Carrot\Repository\BackendMenu as BackendMenuRepository;
 
 class ServiceProvider extends IlluminateServiceProvider
 {
