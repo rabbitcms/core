@@ -2,10 +2,8 @@
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Facades\Response;
-use RabbitCMS\Carrot\Annotation\Permissions;
-use RabbitCMS\Carrot\Contracts\HasAccessEntity;
+use RabbitCMS\Backend\Contracts\HasAccessEntity;
+use RabbitCMS\Backend\Support\Permissions;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
@@ -20,7 +18,7 @@ trait PermissionCheckTrait
      * Execute an action on the controller.
      *
      * @param  string $method
-     * @param  array  $parameters
+     * @param  array $parameters
      *
      * @return \Symfony\Component\HttpFoundation\Response
      */
@@ -28,7 +26,7 @@ trait PermissionCheckTrait
     {
         /**
          * @var HasAccessEntity|PermissionsTrait|null $user
-         * @var Permissions                           $annotation
+         * @var Permissions $annotation
          */
         try {
             $user = \Auth::guard(property_exists($this, 'guard') ? $this->guard : null)->user();
@@ -58,12 +56,12 @@ trait PermissionCheckTrait
                 }
             }
         } catch (AccessDeniedHttpException $e) {
-            if (Request::ajax()) {
-                return Response::json(
+            if (\Request::ajax()) {
+                return \Response::json(
                     [
                         'error' => $e->getMessage(),
-                        'file'  => $e->getFile(),
-                        'line'  => $e->getLine(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
                     ],
                     403,
                     [],

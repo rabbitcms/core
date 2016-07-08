@@ -13,42 +13,26 @@ use InvalidArgumentException;
 trait PermissionsTrait
 {
     /**
-     * Allowed permissions values.
+     * Returns an array of merged permissions for each group the user is in.
      *
-     * Possible options:
-     *   -1 => Deny (adds to array, but denies regardless of user's group).
-     *    0 => Remove.
-     *    1 => Add.
-     *
-     * @return array
-     */
-    public function getAllowedPermissionsValues()
-    {
-        return [0, 1];
-    }
-
-    /**
-     * Get permissions from model
-     *
-     * @throws \Exception
-     * @return array Array of permissions
+     * @return array Array of permissions.
+     * @throws Exception
      */
     public function getPermissions()
     {
-        throw new Exception(__METHOD__.' not implemented.');
+        throw new Exception(__METHOD__ . ' not implemented.');
     }
 
     /**
-     * Save permissions to model
+     * Returns if the user has access to any of the given permissions.
      *
-     * @param array $permissions
+     * @param  array $permissions
      *
-     * @throws \Exception
-     * @return void
+     * @return bool
      */
-    protected function setPermissions(array $permissions)
+    public function hasAnyAccess(array $permissions)
     {
-        throw new Exception(__METHOD__.' not implemented.');
+        return $this->hasAccess($permissions, false);
     }
 
     /**
@@ -63,7 +47,7 @@ trait PermissionsTrait
      * Super users DON'T have access no matter what.
      *
      * @param  string|array $permissions
-     * @param  bool         $all
+     * @param  bool $all
      *
      * @return bool
      */
@@ -88,7 +72,9 @@ trait PermissionsTrait
 
                     // We will make sure that the merged permission does not
                     // exactly match our permission, but starts with it.
-                    if ($checkPermission != $mergedPermission && starts_with($mergedPermission, $checkPermission) && $value == 1) {
+                    if ($checkPermission != $mergedPermission && starts_with($mergedPermission,
+                            $checkPermission) && $value == 1
+                    ) {
                         $matched = true;
                         break;
                     }
@@ -161,18 +147,6 @@ trait PermissionsTrait
     }
 
     /**
-     * Returns if the user has access to any of the given permissions.
-     *
-     * @param  array $permissions
-     *
-     * @return bool
-     */
-    public function hasAnyAccess(array $permissions)
-    {
-        return $this->hasAccess($permissions, false);
-    }
-
-    /**
      * Validate the permissions when set.
      *
      * @param  array $permissions
@@ -195,5 +169,33 @@ trait PermissionsTrait
         }
 
         $this->setPermissions($permissions);
+    }
+
+    /**
+     * Allowed permissions values.
+     *
+     * Possible options:
+     *   -1 => Deny (adds to array, but denies regardless of user's group).
+     *    0 => Remove.
+     *    1 => Add.
+     *
+     * @return array
+     */
+    public function getAllowedPermissionsValues()
+    {
+        return [0, 1];
+    }
+
+    /**
+     * Save permissions to model
+     *
+     * @param array $permissions
+     *
+     * @return void
+     * @throws Exception
+     */
+    protected function setPermissions(array $permissions)
+    {
+        throw new Exception(__METHOD__ . ' not implemented.');
     }
 }
