@@ -37,30 +37,5 @@ class ServiceProvider extends IlluminateServiceProvider
 
     public function register()
     {
-        $this->app->bind(
-            BackendMenuRepository::class,
-            function () {
-                return new BackendMenuRepository($this->app->make(Backend::class));
-            },
-            true
-        );
-
-        $this->app->bind(
-            BackendAclRepository::class,
-            function () {
-                return new BackendAclRepository($this->app->make(Backend::class));
-            },
-            true
-        );
-
-        $loader = AliasLoader::getInstance();
-        $loader->alias('BackendMenu', BackendMenu::class);
-        $loader->alias('BackendAcl', BackendAcl::class);
-    }
-
-    public function provides()
-    {
-        return [
-        ];
     }
 }
