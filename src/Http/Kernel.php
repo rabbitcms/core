@@ -2,7 +2,6 @@
 namespace RabbitCMS\Carrot\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
-use RabbitCMS\Carrot\Http\Middleware\EncryptCookies;
 
 class Kernel extends HttpKernel
 {
@@ -26,7 +25,7 @@ class Kernel extends HttpKernel
     protected $middlewareGroups
         = [
             'web' => [
-                EncryptCookies::class,
+                \Illuminate\Cookie\Middleware\EncryptCookies::class,
                 \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
                 \Illuminate\Session\Middleware\StartSession::class,
                 \Illuminate\View\Middleware\ShareErrorsFromSession::class,
