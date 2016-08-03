@@ -16,19 +16,19 @@ abstract class ModuleProvider extends IlluminateServiceProvider
      */
     protected $moduleManager;
 
-    /**
-     * Fetch module name
-     *
-     * @return string
-     */
-    abstract protected function name();
-
     public function __construct(\Illuminate\Contracts\Foundation\Application $app)
     {
         parent::__construct($app);
         $this->moduleManager = $this->app->make('modules');
         $this->module = $this->moduleManager->get($this->name());
     }
+
+    /**
+     * Fetch module name
+     *
+     * @return string
+     */
+    abstract protected function name();
 
     /**
      * Register the service provider.
@@ -38,10 +38,10 @@ abstract class ModuleProvider extends IlluminateServiceProvider
         $this->registerConfig();
         $this->registerTranslations();
         $this->registerViews();
-        $path = $this->moduleManager->getAssetsPath().'/'.$this->module->getLowerName();
+        $path = $this->moduleManager->getAssetsPath() . '/' . $this->module->getLowerName();
         $public = $this->module->getExtraPath('Assets');
         if (!file_exists($path) && is_dir($public)) {
-            symlink($public, $path);
+            symlink($this->getRelativePath($path, $public), $path);
         }
     }
 
@@ -62,6 +62,20 @@ abstract class ModuleProvider extends IlluminateServiceProvider
     }
 
     /**
+     * Register translations.
+     */
+    public function registerTranslations()
+    {
+        $langPath = base_path("resources/lang/modules/{$this->module->getLowerName()}");
+
+        if (is_dir($langPath)) {
+            $this->loadTranslationsFrom($langPath, $this->module->getLowerName());
+        } else {
+            $this->loadTranslationsFrom($this->module->getExtraPath('Resources/lang'), $this->module->getLowerName());
+        }
+    }
+
+    /**
      * Register views.
      */
     public function registerViews()
@@ -77,17 +91,36 @@ abstract class ModuleProvider extends IlluminateServiceProvider
         $this->loadViewsFrom([$viewPath, $sourcePath], $this->module->getLowerName());
     }
 
-    /**
-     * Register translations.
-     */
-    public function registerTranslations()
+    private function getRelativePath($from, $to)
     {
-        $langPath = base_path("resources/lang/modules/{$this->module->getLowerName()}");
+        // some compatibility fixes for Windows paths
+        $from = is_dir($from) ? rtrim($from, '\/') . '/' : $from;
+        $to = is_dir($to) ? rtrim($to, '\/') . '/' : $to;
+        $from = str_replace('\\', '/', $from);
+        $to = str_replace('\\', '/', $to);
 
-        if (is_dir($langPath)) {
-            $this->loadTranslationsFrom($langPath, $this->module->getLowerName());
-        } else {
-            $this->loadTranslationsFrom($this->module->getExtraPath('Resources/lang'), $this->module->getLowerName());
+        $from = explode('/', $from);
+        $to = explode('/', $to);
+        $relPath = $to;
+
+        foreach ($from as $depth => $dir) {
+            // find first non-matching dir
+            if ($dir === $to[$depth]) {
+                // ignore this directory
+                array_shift($relPath);
+            } else {
+                // get number of remaining dirs to $from
+                $remaining = count($from) - $depth;
+                if ($remaining > 1) {
+                    // add traversals up to first matching dir
+                    $padLength = (count($relPath) + $remaining - 1) * -1;
+                    $relPath = array_pad($relPath, $padLength, '..');
+                    break;
+                } else {
+                    $relPath[0] = './' . $relPath[0];
+                }
+            }
         }
+        return implode('/', $relPath);
     }
 }
