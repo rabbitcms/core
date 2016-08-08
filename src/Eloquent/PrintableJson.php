@@ -2,6 +2,8 @@
 
 namespace RabbitCMS\Carrot\Eloquent;
 
+use Illuminate\Database\Eloquent\Model as Eloquent;
+
 /**
  * Class PrintableJson.
  *

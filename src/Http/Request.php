@@ -30,5 +30,4 @@ abstract class Request extends FormRequest
     ) {
         parent::initialize(array_merge($this->defaults, $query), $request, $attributes, $cookies, $files, $server, $content);
     }
-
 }

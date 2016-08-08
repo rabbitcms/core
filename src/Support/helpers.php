@@ -25,12 +25,11 @@ if (! function_exists('relative_route')) {
      *
      * @param  string  $name
      * @param  array   $parameters
-     * @param  \Illuminate\Routing\Route  $route
      * @return string
      */
-    function relative_route($name, $parameters = [], $route = null)
+    function relative_route($name, $parameters = [])
     {
-        return app('url')->route($name, $parameters, false, $route);
+        return app('url')->route($name, $parameters, false);
     }
 }
 
@@ -42,7 +41,7 @@ if (! function_exists('html_link')) {
      * @param string $title
      * @param array  $attributes
      *
-     * @return \Illuminate\Support\HtmlString
+     * @return string
      */
     function html_link($url, $title = null, $attributes = [])
     {
