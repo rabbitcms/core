@@ -41,7 +41,8 @@ abstract class ModuleProvider extends IlluminateServiceProvider
         $path = $this->moduleManager->getAssetsPath() . '/' . $this->module->getLowerName();
         $public = $this->module->getExtraPath('Assets');
         if (!file_exists($path) && is_dir($public)) {
-            symlink($this->getRelativePath($path, $public), $path);
+            $link = defined('PHP_WINDOWS_VERSION_MAJOR') ? $public : $this->getRelativePath($path, $public);
+            symlink($link, $path);
         }
     }
 
