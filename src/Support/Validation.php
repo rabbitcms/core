@@ -40,7 +40,7 @@ trait Validation
         }
 
         return $factory->make(
-            $this->attributesToArray(),
+            $this->validationData(),
             $container->call([$this, 'validationRules']),
             $this->validationMessages(),
             $this->validationAttributes()
@@ -72,7 +72,7 @@ trait Validation
      *
      * @return array
      */
-    abstract protected function validationRules();
+    abstract public function validationRules();
 
     /**
      * Handle a failed validation attempt.

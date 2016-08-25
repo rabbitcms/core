@@ -1,6 +1,7 @@
 <?php
 namespace RabbitCMS\Carrot\Http;
 
+use ABC\Http\Middleware\RedirectIfAuthenticated;
 use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -49,7 +50,7 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
         'auth'       => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => AuthenticateWithBasicAuth::class,
-        'guest'      => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'guest'      => RedirectIfAuthenticated::class,
         'throttle'   => ThrottleRequests::class,
     ];
 }
