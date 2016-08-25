@@ -32,6 +32,8 @@ class ServiceProvider extends IlluminateServiceProvider
 
         $this->registerConfig();
         $this->registerServices();
+
+        $this->registerModules();
     }
 
     /**
@@ -57,5 +59,9 @@ class ServiceProvider extends IlluminateServiceProvider
                 return new Manager($app);
             }
         );
+    }
+
+    public function registerModules(){
+        $this->app->make(ModulesManager::class)->register();
     }
 }

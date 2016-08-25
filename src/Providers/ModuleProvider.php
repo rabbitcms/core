@@ -2,25 +2,28 @@
 
 namespace RabbitCMS\Carrot\Providers;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
+use RabbitCMS\Carrot\Modules\Contracts\ModulesManager;
+use RabbitCMS\Carrot\Modules\Module;
 
 abstract class ModuleProvider extends IlluminateServiceProvider
 {
     /**
-     * @var \Pingpong\Modules\Module
+     * @var Module
      */
     protected $module;
 
     /**
-     * @var \Pingpong\Modules\Repository
+     * @var ModulesManager
      */
-    protected $moduleManager;
+    protected $modulesManager;
 
-    public function __construct(\Illuminate\Contracts\Foundation\Application $app)
+    public function __construct(Application $app)
     {
         parent::__construct($app);
-        $this->moduleManager = $this->app->make('modules');
-        $this->module = $this->moduleManager->get($this->name());
+        $this->modulesManager = $this->app->make(ModulesManager::class);
+        $this->module = $this->modulesManager->get($this->name());
     }
 
     /**
@@ -38,8 +41,8 @@ abstract class ModuleProvider extends IlluminateServiceProvider
         $this->registerConfig();
         $this->registerTranslations();
         $this->registerViews();
-        $path = $this->moduleManager->getAssetsPath() . '/' . $this->module->getLowerName();
-        $public = $this->module->getExtraPath('Assets');
+        $path = app_path('module' . '/' . $this->module->getName());
+        $public = $this->module->getPath('Assets');
         if (!file_exists($path) && is_dir($public)) {
             $link = defined('PHP_WINDOWS_VERSION_MAJOR') ? $public : $this->getRelativePath($path, $public);
             symlink($link, $path);
@@ -51,15 +54,11 @@ abstract class ModuleProvider extends IlluminateServiceProvider
      */
     protected function registerConfig()
     {
-        $configPath = $this->module->getExtraPath('Config/config.php');
+        $configPath = $this->module->getPath('Config/config.php');
 
-        $this->mergeConfigFrom(
-            $configPath, "module.{$this->module->getLowerName()}"
-        );
+        $this->mergeConfigFrom($configPath, "module.{$this->module->getName()}");
 
-        $this->publishes([
-            $configPath => config_path("module/{$this->module->getLowerName()}.php"),
-        ]);
+        $this->publishes([$configPath => config_path("module/{$this->module->getName()}.php")]);
     }
 
     /**
@@ -67,12 +66,12 @@ abstract class ModuleProvider extends IlluminateServiceProvider
      */
     public function registerTranslations()
     {
-        $langPath = base_path("resources/lang/modules/{$this->module->getLowerName()}");
+        $langPath = base_path("resources/lang/modules/{$this->module->getName()}");
 
         if (is_dir($langPath)) {
-            $this->loadTranslationsFrom($langPath, $this->module->getLowerName());
+            $this->loadTranslationsFrom($langPath, $this->module->getName());
         } else {
-            $this->loadTranslationsFrom($this->module->getExtraPath('Resources/lang'), $this->module->getLowerName());
+            $this->loadTranslationsFrom($this->module->getPath('Resources/lang'), $this->module->getName());
         }
     }
 
@@ -81,15 +80,13 @@ abstract class ModuleProvider extends IlluminateServiceProvider
      */
     public function registerViews()
     {
-        $viewPath = base_path("resources/views/modules/{$this->module->getLowerName()}");
+        $viewPath = base_path("resources/views/modules/{$this->module->getName()}");
 
-        $sourcePath = $this->module->getExtraPath('Resources/views');
+        $sourcePath = $this->module->getPath('Resources/views');
 
-        $this->publishes([
-            $sourcePath => $viewPath,
-        ]);
+        $this->publishes([$sourcePath => $viewPath]);
 
-        $this->loadViewsFrom([$viewPath, $sourcePath], $this->module->getLowerName());
+        $this->loadViewsFrom([$viewPath, $sourcePath], $this->module->getName());
     }
 
     private function getRelativePath($from, $to)
@@ -122,6 +119,7 @@ abstract class ModuleProvider extends IlluminateServiceProvider
                 }
             }
         }
+
         return implode('/', $relPath);
     }
 }

@@ -2,7 +2,7 @@
 namespace RabbitCMS\Carrot\Modules;
 
 use FilesystemIterator;
-use Illuminate\Contracts\Container\Container;
+use Illuminate\Contracts\Foundation\Application;
 use RabbitCMS\Carrot\Modules\Contracts\ModulesManager;
 use RecursiveDirectoryIterator;
 use RuntimeException;
@@ -11,9 +11,9 @@ use SplFileInfo;
 class Manager implements ModulesManager
 {
     /**
-     * @var Container
+     * @var Application
      */
-    protected $container;
+    protected $app;
 
     /**
      * @var Repository
@@ -23,11 +23,11 @@ class Manager implements ModulesManager
     /**
      * Manager constructor.
      *
-     * @param Container $container
+     * @param Application $app
      */
-    public function __construct(Container $container)
+    public function __construct(Application $app)
     {
-        $this->container = $container;
+        $this->app = $app;
         $this->restore();
     }
 
@@ -45,6 +45,7 @@ class Manager implements ModulesManager
             $modules->add(new Module($module));
         }
         $this->modules = $modules;
+
         return true;
     }
 
@@ -132,18 +133,6 @@ class Manager implements ModulesManager
     /**
      * @inheritdoc
      */
-    public function enabled()
-    {
-        return $this->all()->filter(
-            function (Module $module) {
-                return $module->isEnabled();
-            }
-        );
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function disable($name)
     {
         $module = $this->all()->get($name);
@@ -161,5 +150,50 @@ class Manager implements ModulesManager
     {
         $this->all()->get($name)->setEnabled(true);
         $this->store();
+    }
+
+    /**
+     * Register module providers.
+     */
+    public function register()
+    {
+        $this->enabled()->each(
+            function (Module $module) {
+                array_map(
+                    function ($provider) {
+                        $this->app->register($provider);
+                    },
+                    $module->getProviders()
+                );
+            }
+        );
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function enabled()
+    {
+        return $this->all()->filter(
+            function (Module $module) {
+                return $module->isEnabled();
+            }
+        );
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function has($name)
+    {
+        return $this->all()->has($name);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function get($name)
+    {
+        return $this->all()->get($name);
     }
 }

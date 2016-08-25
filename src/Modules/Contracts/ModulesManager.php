@@ -2,6 +2,7 @@
 
 namespace RabbitCMS\Carrot\Modules\Contracts;
 
+use RabbitCMS\Carrot\Modules\Module;
 use RabbitCMS\Carrot\Modules\Repository;
 
 interface ModulesManager
@@ -47,4 +48,18 @@ interface ModulesManager
      * Store modules.
      */
     public function store();
+
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function has($name);
+
+    /**
+     * @param string $name
+     *
+     * @return Module
+     */
+    public function get($name);
 }
