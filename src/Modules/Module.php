@@ -150,4 +150,12 @@ class Module implements JsonSerializable, Arrayable
             'system'    => $this->system,
         ];
     }
+
+    /**
+     * @return string
+     * @deprecated
+     */
+    public function getLowerName(){
+        return $this->getName();
+    }
 }

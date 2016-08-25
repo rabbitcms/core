@@ -15,7 +15,7 @@ if (!function_exists('asset_module')) {
             $asset = "$module:$asset";
         }
 
-        return \Module::asset($asset);
+        return \Modules::asset($asset);
     }
 }
 

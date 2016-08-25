@@ -56,6 +56,9 @@ class Manager implements ModulesManager
     {
         $modules = new Repository();
         foreach ((array)$this->config('modules.paths', []) as $path) {
+            if (!is_dir($path)) {
+                continue;
+            }
             foreach (new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS) as $file) {
 
                 /* @var SplFileInfo $file */
@@ -80,8 +83,16 @@ class Manager implements ModulesManager
                 $module['path'] = $file->getPathname();
                 $module = new Module($module);
                 if ($this->modules->has($module->getName())) {
-                    $module->setEnabled($this->modules->get($module->getName())->isEnabled());
+                    //$module->setEnabled($this->modules->get($module->getName())->isEnabled());
                 }
+                $path = public_path($this->getAssetsPath() . '/' . $module->getName());
+                $public = $module->getPath('Assets');
+
+                if (!file_exists($path) && is_dir($public)) {
+                    $link = defined('PHP_WINDOWS_VERSION_MAJOR') ? $public : $this->getRelativePath($path, $public);
+                    symlink($link, $path);
+                }
+
                 $modules->add($module);
             }
         }
@@ -104,7 +115,51 @@ class Manager implements ModulesManager
      */
     public function config($key, $default = null)
     {
-        return $this->container->make('config')->get('carrot.' . $key, $default);
+        return $this->app->make('config')->get('carrot.' . $key, $default);
+    }
+
+    /**
+     * Get modules assets path.
+     *
+     * @return string
+     */
+    public function getAssetsPath()
+    {
+        return $this->config('assets', 'modules');
+    }
+
+    private function getRelativePath($from, $to)
+    {
+        // some compatibility fixes for Windows paths
+        $from = is_dir($from) ? rtrim($from, '\/') . '/' : $from;
+        $to = is_dir($to) ? rtrim($to, '\/') . '/' : $to;
+        $from = str_replace('\\', '/', $from);
+        $to = str_replace('\\', '/', $to);
+
+        $from = explode('/', $from);
+        $to = explode('/', $to);
+        $relPath = $to;
+
+        foreach ($from as $depth => $dir) {
+            // find first non-matching dir
+            if ($dir === $to[$depth]) {
+                // ignore this directory
+                array_shift($relPath);
+            } else {
+                // get number of remaining dirs to $from
+                $remaining = count($from) - $depth;
+                if ($remaining > 1) {
+                    // add traversals up to first matching dir
+                    $padLength = (count($relPath) + $remaining - 1) * -1;
+                    $relPath = array_pad($relPath, $padLength, '..');
+                    break;
+                } else {
+                    $relPath[0] = './' . $relPath[0];
+                }
+            }
+        }
+
+        return implode('/', $relPath);
     }
 
     /**
@@ -195,5 +250,20 @@ class Manager implements ModulesManager
     public function get($name)
     {
         return $this->all()->get($name);
+    }
+
+    /**
+     * Generate a URL to an application asset.
+     *
+     * @param  string    $path
+     * @param  bool|null $secure
+     *
+     * @return string
+     */
+    public function asset($path, $secure = null)
+    {
+        list($name, $url) = explode(':', $path);
+
+        return $this->app['url']->asset($this->getAssetsPath() . "/{$name}/" . $url, $secure);
     }
 }

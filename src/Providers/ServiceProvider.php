@@ -2,6 +2,7 @@
 
 namespace RabbitCMS\Carrot\Providers;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
@@ -54,14 +55,19 @@ class ServiceProvider extends IlluminateServiceProvider
     protected function registerServices()
     {
         $this->app->singleton(
-            ModulesManager::class,
+            ['modules'=> ModulesManager::class],
             function ($app) {
                 return new Manager($app);
             }
         );
     }
 
-    public function registerModules(){
-        $this->app->make(ModulesManager::class)->register();
+    public function registerModules()
+    {
+        $this->app->booting(
+            function (Application $app) {
+                $app->make(ModulesManager::class)->register();
+            }
+        );
     }
 }
