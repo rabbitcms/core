@@ -3,7 +3,7 @@ namespace RabbitCMS\Carrot\Support;
 
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
-use Illuminate\Contracts\Validation\ValidationException;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
 
 /**
