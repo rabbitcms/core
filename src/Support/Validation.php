@@ -3,7 +3,7 @@ namespace RabbitCMS\Carrot\Support;
 
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
-use Illuminate\Contracts\Validation\ValidationException;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
 
 /**
@@ -40,7 +40,7 @@ trait Validation
         }
 
         return $factory->make(
-            $this->attributesToArray(),
+            $this->validationData(),
             $container->call([$this, 'validationRules']),
             $this->validationMessages(),
             $this->validationAttributes()
@@ -72,7 +72,7 @@ trait Validation
      *
      * @return array
      */
-    abstract protected function validationRules();
+    abstract public function validationRules();
 
     /**
      * Handle a failed validation attempt.

@@ -2,8 +2,8 @@
 
 namespace RabbitCMS\Carrot\Eloquent;
 
-use Illuminate\Contracts\Validation\ValidationException;
 use Illuminate\Database\Eloquent\Model as Eloquent;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
 
 /**
@@ -59,5 +59,15 @@ trait Validation
         if ($this->fireModelEvent('invalidated') !== false) {
             throw new ValidationException($validator);
         }
+    }
+
+    /**
+     * Get validation data.
+     *
+     * @return array
+     */
+    protected function validationData()
+    {
+        return $this->attributesToArray();
     }
 }
