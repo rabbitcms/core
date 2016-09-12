@@ -19,26 +19,24 @@ if (! function_exists('html_link')) {
      * Generate a HTML link.
      *
      * @param string $url
-     * @param string $title
-     * @param array  $attributes
+     * @param string|null $title
+     * @param array $attributes
      *
-     * @return string
+     * @return \Illuminate\Support\HtmlString
      */
     function html_link($url, $title = null, $attributes = [])
     {
-        if (is_null($title) || $title === false) {
+        if ($title === null) {
             $title = $url;
         }
 
-        $_attributes = "";
+        $_attributes = '';
         foreach ($attributes as $key => $value) {
             $_attributes .= $key . '="' . e($value) . '"';
         }
 
         $html = '<a href="' . $url . '" ' . $_attributes . '>' . $title . '</a>';
 
-        $result = new \Illuminate\Support\HtmlString($html);
-
-        return $result->toHtml();
+        return new \Illuminate\Support\HtmlString($html);
     }
 }
