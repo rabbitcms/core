@@ -4,6 +4,10 @@ namespace RabbitCMS\Carrot\Providers;
 
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 
+/**
+ * Class ModuleProvider
+ * @deprecated
+ */
 abstract class ModuleProvider extends IlluminateServiceProvider
 {
     /**

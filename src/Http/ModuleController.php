@@ -8,6 +8,11 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\View\View;
 use Pingpong\Modules\Module;
 
+/**
+ * Class ModuleController
+ *
+ * @deprecated
+ */
 abstract class ModuleController extends BaseController
 {
     /**
