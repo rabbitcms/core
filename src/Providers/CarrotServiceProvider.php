@@ -36,7 +36,7 @@ class CarrotServiceProvider extends IlluminateServiceProvider
     {
         Request::setTrustedProxies(
             $this->app->make('config')->get('carrot.trustedProxies', []),
-            constant(Request::class .'::HEADER_X_FORWARDED_ALL')
+            defined(Request::class .'::HEADER_X_FORWARDED_ALL') ? Request::HEADER_X_FORWARDED_ALL : 0
         );
     }
 }
