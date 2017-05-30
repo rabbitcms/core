@@ -18,11 +18,28 @@ abstract class Grid2
     public static $handlers = [];
 
     /**
+     * @var Builder
+     */
+    protected $query;
+
+    /**
      * @param callable $handler
      */
     public static function addHandler(callable $handler)
     {
         self::$handlers[] = $handler;
+    }
+
+    /**
+     * @param Builder $query
+     *
+     * @return Grid2
+     */
+    public function setQuery(Builder $query): Grid2
+    {
+        $this->query = $query;
+
+        return $this;
     }
 
     /**
@@ -94,7 +111,7 @@ abstract class Grid2
      */
     public function getQuery(Request $request) :Builder
     {
-        $query = $this->filters($this->getModel()->newQuery(), (array)$request->input('filters', []));
+        $query = $this->filters($this->query ?: $this->getModel()->newQuery(), (array)$request->input('filters', []));
 
         $query->where(function (Builder $query) use ($request) {
             array_map(function (callable $handler) use ($query, $request) {
