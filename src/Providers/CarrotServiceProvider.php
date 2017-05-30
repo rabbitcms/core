@@ -20,9 +20,9 @@ class CarrotServiceProvider extends IlluminateServiceProvider
      */
     protected function registerConfig()
     {
-        $configPath = realpath(__DIR__ . '/../../config/config.php');
+        $configPath = dirname(__DIR__, 2) . '/config/config.php';
 
-        $this->mergeConfigFrom($configPath, "carrot");
+        $this->mergeConfigFrom($configPath, 'carrot');
 
         $this->publishes([$configPath => config_path('carrot.php')]);
     }
@@ -34,6 +34,9 @@ class CarrotServiceProvider extends IlluminateServiceProvider
 
     protected function bootTrustedProxies()
     {
-        Request::setTrustedProxies($this->app->make('config')->get('carrot.trustedProxies', []));
+        Request::setTrustedProxies(
+            $this->app->make('config')->get('carrot.trustedProxies', []),
+            constant(Request::class .'::HEADER_X_FORWARDED_ALL')
+        );
     }
 }
