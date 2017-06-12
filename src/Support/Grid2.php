@@ -45,7 +45,7 @@ abstract class Grid2
     /**
      * @return Eloquent
      */
-    abstract public function getModel() :Eloquent;
+    abstract public function getModel(): Eloquent;
 
     /**
      * @param Builder $query
@@ -53,7 +53,7 @@ abstract class Grid2
      *
      * @return Builder
      */
-    protected function filters(Builder $query, array $filters) :Builder
+    protected function filters(Builder $query, array $filters): Builder
     {
         return $query;
     }
@@ -63,7 +63,7 @@ abstract class Grid2
      *
      * @return array
      */
-    protected function prepareRow(Eloquent $row) :array
+    protected function prepareRow(Eloquent $row): array
     {
         return $row->attributesToArray();
     }
@@ -73,7 +73,7 @@ abstract class Grid2
      *
      * @return JsonResponse
      */
-    public function response(Request $request = null) :JsonResponse
+    public function response(Request $request = null): JsonResponse
     {
         $request = $request ?: request();
         $total = $this->getModel()->newQuery()->count();
@@ -109,7 +109,7 @@ abstract class Grid2
      *
      * @return Builder
      */
-    public function getQuery(Request $request) :Builder
+    public function getQuery(Request $request): Builder
     {
         $query = $this->filters($this->query ?: $this->getModel()->newQuery(), (array)$request->input('filters', []));
 
@@ -124,10 +124,11 @@ abstract class Grid2
 
     /**
      * @param Request $request
+     * @param $orders
      *
      * @return array
      */
-    public function getOrders(Request $request) :array
+    public function getOrders(Request $request, array $orders = []): array
     {
         $result = [];
 
@@ -139,6 +140,10 @@ abstract class Grid2
                     $order['dir']
                 ];
             }
+        }
+
+        foreach ($orders as $order) {
+            $result[] = $order;
         }
 
         return $result;
