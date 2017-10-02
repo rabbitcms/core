@@ -69,6 +69,14 @@ abstract class Grid2
     }
 
     /**
+     * @return Builder
+     */
+    protected function createQuery():Builder
+    {
+        return $this->getModel()->newQuery();
+    }
+
+    /**
      * @param Request|null $request
      *
      * @return JsonResponse
@@ -76,7 +84,7 @@ abstract class Grid2
     public function response(Request $request = null): JsonResponse
     {
         $request = $request ?: request();
-        $total = $this->getModel()->newQuery()->count();
+        $total = $this->createQuery()->count();
 
         $query = $this->getQuery($request);
 
@@ -111,7 +119,7 @@ abstract class Grid2
      */
     public function getQuery(Request $request): Builder
     {
-        $query = $this->filters($this->query ?: $this->getModel()->newQuery(), (array)$request->input('filters', []));
+        $query = $this->filters($this->query ?: $this->createQuery(), (array)$request->input('filters', []));
 
         $query->where(function (Builder $query) use ($request) {
             array_map(function (callable $handler) use ($query, $request) {
