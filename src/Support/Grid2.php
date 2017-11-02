@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 namespace RabbitCMS\Carrot\Support;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -23,11 +24,30 @@ abstract class Grid2
     protected $query;
 
     /**
+     * @var array[]
+     */
+    protected static $filters = [null => []];
+
+    /**
      * @param callable $handler
      */
     public static function addHandler(callable $handler)
     {
         self::$handlers[] = $handler;
+    }
+
+    /**
+     * @param string|null $filter
+     * @param \Closure    $callback
+     * @param array       $params [only,except,terminate]
+     */
+    public static function addFilter(
+        ?string $filter,
+        \Closure $callback,
+        array $params = []
+    ) {
+        $params['uses'] = $callback;
+        static::$filters[$filter][] = $params + ['except' => [''], 'terminate' => true];
     }
 
     /**
@@ -55,6 +75,29 @@ abstract class Grid2
      */
     protected function filters(Builder $query, array $filters): Builder
     {
+        foreach (static::$filters[null] as $value) {
+            call_user_func($value['uses'], $query, $filters);
+        }
+
+        foreach (static::$filters as $name => $values) {
+            if ($name === '' || !array_key_exists($name, $filters)) {
+                continue;
+            }
+            $filter = $filters[$name];
+            foreach ($values as $value) {
+                if ((is_array($value['only'] ?? null) && !in_array($filter, $value['only'], true))
+                    || (is_array($value['except'] ?? null) && in_array($filter, $value['except'], true))) {
+                    continue;
+                }
+
+                call_user_func($value['uses'], $query, $filter);
+
+                if ($value['terminate'] ?? null !== false) {
+                    //terminate the filter
+                    break;
+                }
+            }
+        }
         return $query;
     }
 
@@ -71,8 +114,10 @@ abstract class Grid2
     /**
      * @return Builder
      */
-    protected function createQuery():Builder
+    protected function createQuery(): Builder
     {
+        $this->relations = [true => [], false => []];
+
         return $this->getModel()->newQuery();
     }
 
@@ -132,7 +177,7 @@ abstract class Grid2
 
     /**
      * @param Request $request
-     * @param $orders
+     * @param         $orders
      *
      * @return array
      */
