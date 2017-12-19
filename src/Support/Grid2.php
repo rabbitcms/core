@@ -76,7 +76,7 @@ abstract class Grid2
     protected function filters(Builder $query, array $filters): Builder
     {
         foreach (static::$filters[null] as $value) {
-            call_user_func($value['uses'], $query, $filters);
+            call_user_func($value['uses'], $query, $filters, $this);
         }
 
         foreach (static::$filters as $name => $values) {
@@ -90,7 +90,7 @@ abstract class Grid2
                     continue;
                 }
 
-                call_user_func($value['uses'], $query, $filter);
+                call_user_func($value['uses'], $query, $filter, $this);
 
                 if ($value['terminate'] ?? null !== false) {
                     //terminate the filter
