@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class Grid2.
@@ -121,6 +122,11 @@ abstract class Grid2
         return $this->getModel()->newQuery();
     }
 
+    protected function additional(Builder $builder): array
+    {
+        return [];
+    }
+
     /**
      * @param Request|null $request
      *
@@ -135,6 +141,8 @@ abstract class Grid2
 
         $count = $query->count();
 
+        $additional = $this->additional(clone $query);
+
         foreach ($this->getOrders($request) as $order) {
             $query->orderBy(...$order);
         }
@@ -145,16 +153,19 @@ abstract class Grid2
                 ->offset($request->input('start', 0));
         }
 
+        DB::enableQueryLog();
         $data = $query->get()->map(function (Eloquent $row) {
             return $this->prepareRow($row);
         });
+        DB::disableQueryLog();
 
-        return new JsonResponse([
+        return new JsonResponse(array_merge($additional, [
             'recordsTotal' => $total,
             'recordsFiltered' => $count,
             'draw' => $request->input('draw'),
             'data' => $data,
-        ], 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            'query' => DB::getQueryLog()
+        ]), 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     /**
@@ -167,8 +178,8 @@ abstract class Grid2
         $query = $this->filters($this->query ?: $this->createQuery(), (array)$request->input('filters', []));
 
         $query->where(function (Builder $query) use ($request) {
-            array_map(function (callable $handler) use ($query, $request) {
-                call_user_func($handler, $query, $request);
+            \array_map(function (callable $handler) use ($query, $request) {
+                $handler($query, $request);
             }, self::$handlers);
         });
 
