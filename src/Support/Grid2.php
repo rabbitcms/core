@@ -44,9 +44,14 @@ abstract class Grid2
      */
     public static function addFilter(
         ?string $filter,
-        \Closure $callback,
+        \Closure $callback = null,
         array $params = []
     ) {
+        if ($callback === null) {
+            $callback = function (Builder $builder, $filter, $self, $name) {
+                $builder->where($name, $filter);
+            };
+        }
         $params['uses'] = $callback;
         static::$filters[$filter][] = $params + ['except' => [''], 'terminate' => true];
     }
@@ -91,7 +96,7 @@ abstract class Grid2
                     continue;
                 }
 
-                call_user_func($value['uses'], $query, $filter, $this);
+                call_user_func($value['uses'], $query, $filter, $this, $name, $filters);
 
                 if ($value['terminate'] ?? null !== false) {
                     //terminate the filter
