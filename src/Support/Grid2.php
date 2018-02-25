@@ -203,11 +203,18 @@ abstract class Grid2
 
         $columns = $request->input('columns', []);
         foreach ((array)$request->input('order', []) as $order) {
-            if (array_key_exists($order['column'], $columns) && !empty($columns[$order['column']]['name'])) {
-                $result[] = [
-                    $columns[$order['column']]['name'],
-                    $order['dir']
-                ];
+            if (array_key_exists($order['column'], $columns)) {
+                if (!empty($columns[$order['column']]['name'])) {
+                    $result[] = [
+                        $columns[$order['column']]['name'],
+                        $order['dir']
+                    ];
+                } elseif (!empty($columns[$order['column']]['data'])) {
+                    $result[] = [
+                        $columns[$order['column']]['data'],
+                        $order['dir']
+                    ];
+                }
             }
         }
 
