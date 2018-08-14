@@ -30,6 +30,11 @@ abstract class Grid2
     protected static $filters = [null => []];
 
     /**
+     * @var array
+     */
+    protected $orderMap = [];
+
+    /**
      * @param callable $handler
      */
     public static function addHandler(callable $handler)
@@ -204,14 +209,13 @@ abstract class Grid2
         $columns = $request->input('columns', []);
         foreach ((array)$request->input('order', []) as $order) {
             if (array_key_exists($order['column'], $columns)) {
-                if (!empty($columns[$order['column']]['name'])) {
+                $name = $columns[$order['column']]['name'] ?? $columns[$order['column']]['data'] ?? '';
+                if(array_key_exists($name, $this->orderMap)) {
+                    $name = $this->orderMap[$name];
+                }
+                if($name) {
                     $result[] = [
-                        $columns[$order['column']]['name'],
-                        $order['dir']
-                    ];
-                } elseif (!empty($columns[$order['column']]['data'])) {
-                    $result[] = [
-                        $columns[$order['column']]['data'],
+                        $name,
                         $order['dir']
                     ];
                 }
