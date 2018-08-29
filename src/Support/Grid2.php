@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace RabbitCMS\Carrot\Support;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -164,7 +165,7 @@ abstract class Grid2
         }
 
         DB::enableQueryLog();
-        $data = $query->get()->map(function (Eloquent $row) {
+        $data = $this->getResult($query)->map(function (Eloquent $row) {
             return $this->prepareRow($row);
         });
         DB::disableQueryLog();
@@ -176,6 +177,16 @@ abstract class Grid2
             'data' => $data,
             'query' => DB::getQueryLog()
         ]), 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
+     * @param Builder $builder
+     *
+     * @return Collection
+     */
+    protected function getResult(Builder $builder): Collection
+    {
+        return $builder->get();
     }
 
     /**
@@ -210,10 +221,10 @@ abstract class Grid2
         foreach ((array)$request->input('order', []) as $order) {
             if (array_key_exists($order['column'], $columns)) {
                 $name = $columns[$order['column']]['name'] ?? $columns[$order['column']]['data'] ?? '';
-                if(array_key_exists($name, $this->orderMap)) {
+                if (array_key_exists($name, $this->orderMap)) {
                     $name = $this->orderMap[$name];
                 }
-                if($name) {
+                if ($name) {
                     $result[] = [
                         $name,
                         $order['dir']
