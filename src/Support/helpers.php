@@ -7,6 +7,7 @@ if (! function_exists('relative_route')) {
      * @param  string  $name
      * @param  array   $parameters
      * @return string
+     * @deprecated
      */
     function relative_route($name, $parameters = [])
     {
@@ -23,6 +24,7 @@ if (! function_exists('html_link')) {
      * @param array $attributes
      *
      * @return \Illuminate\Support\HtmlString
+     * @deprecated
      */
     function html_link($url, $title = null, $attributes = [])
     {

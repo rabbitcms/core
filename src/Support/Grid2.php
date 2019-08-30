@@ -3,12 +3,11 @@ declare(strict_types=1);
 
 namespace RabbitCMS\Carrot\Support;
 
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model as Eloquent;
-use Illuminate\Http\JsonResponse;
+use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\{Builder, Collection, Model as Eloquent};
 
 /**
  * Class Grid2.
@@ -36,7 +35,7 @@ abstract class Grid2
     protected $orderMap = [];
 
     /**
-     * @param callable $handler
+     * @param  callable  $handler
      */
     public static function addHandler(callable $handler)
     {
@@ -44,13 +43,13 @@ abstract class Grid2
     }
 
     /**
-     * @param string|null $filter
-     * @param \Closure    $callback
-     * @param array       $params [only,except,terminate]
+     * @param  string|null  $filter
+     * @param  \Closure  $callback
+     * @param  array  $params  [only,except,terminate]
      */
     public static function addFilter(
         ?string $filter,
-        \Closure $callback = null,
+        Closure $callback = null,
         array $params = []
     ) {
         if ($callback === null) {
@@ -63,7 +62,7 @@ abstract class Grid2
     }
 
     /**
-     * @param Builder $query
+     * @param  Builder  $query
      *
      * @return Grid2
      */
@@ -80,8 +79,8 @@ abstract class Grid2
     abstract public function getModel(): Eloquent;
 
     /**
-     * @param Builder $query
-     * @param array   $filters
+     * @param  Builder  $query
+     * @param  array  $filters
      *
      * @return Builder
      */
@@ -92,12 +91,12 @@ abstract class Grid2
         }
 
         foreach (static::$filters as $name => $values) {
-            if ($name === '' || !array_key_exists($name, $filters)) {
+            if ($name === '' || ! array_key_exists($name, $filters)) {
                 continue;
             }
             $filter = $filters[$name];
             foreach ($values as $value) {
-                if ((is_array($value['only'] ?? null) && !in_array($filter, $value['only'], true))
+                if ((is_array($value['only'] ?? null) && ! in_array($filter, $value['only'], true))
                     || (is_array($value['except'] ?? null) && in_array($filter, $value['except'], true))) {
                     continue;
                 }
@@ -114,7 +113,7 @@ abstract class Grid2
     }
 
     /**
-     * @param Eloquent $row
+     * @param  Eloquent  $row
      *
      * @return array
      */
@@ -139,7 +138,21 @@ abstract class Grid2
     }
 
     /**
-     * @param Request|null $request
+     * Add an "order by" clause to the query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder  $query
+     * @param  string  $column
+     * @param  string  $direction
+     *
+     * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder
+     */
+    protected function orderBy($query, $column, $direction = 'asc')
+    {
+        return $query->orderBy($column, $direction);
+    }
+
+    /**
+     * @param  Request|null  $request
      *
      * @return JsonResponse
      */
@@ -155,7 +168,7 @@ abstract class Grid2
         $additional = $this->additional(clone $query);
 
         foreach ($this->getOrders($request) as $order) {
-            $query->orderBy(...$order);
+            $this->orderBy($query, ...$order);
         }
 
         if ($request->input('length') > 0) {
@@ -175,12 +188,12 @@ abstract class Grid2
             'recordsFiltered' => $count,
             'draw' => $request->input('draw'),
             'data' => $data,
-            'query' => DB::getQueryLog()
+            'query' => DB::getQueryLog(),
         ]), 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     /**
-     * @param Builder $builder
+     * @param  Builder  $builder
      *
      * @return Collection
      */
@@ -190,13 +203,14 @@ abstract class Grid2
     }
 
     /**
-     * @param Request $request
+     * @param  Request  $request
      *
      * @return Builder
      */
     public function getQuery(Request $request): Builder
     {
-        $query = $this->filters($this->query ?: $this->createQuery(), (array)$request->input('filters', []));
+
+        $query = $this->filters($this->query ?: $this->createQuery(), (array) $request->input('filters', []));
 
         $query->where(function (Builder $query) use ($request) {
             \array_map(function (callable $handler) use ($query, $request) {
@@ -208,8 +222,8 @@ abstract class Grid2
     }
 
     /**
-     * @param Request $request
-     * @param         $orders
+     * @param  Request  $request
+     * @param  array  $orders
      *
      * @return array
      */
@@ -218,7 +232,7 @@ abstract class Grid2
         $result = [];
 
         $columns = $request->input('columns', []);
-        foreach ((array)$request->input('order', []) as $order) {
+        foreach ((array) $request->input('order', []) as $order) {
             if (array_key_exists($order['column'], $columns)) {
                 $name = $columns[$order['column']]['name'] ?? $columns[$order['column']]['data'] ?? '';
                 if (array_key_exists($name, $this->orderMap)) {
@@ -227,7 +241,7 @@ abstract class Grid2
                 if ($name) {
                     $result[] = [
                         $name,
-                        $order['dir']
+                        $order['dir'],
                     ];
                 }
             }
