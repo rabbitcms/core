@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace RabbitCMS\Carrot\Support;
 
 use Closure;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\{Builder, Collection, Model as Eloquent};
 /**
  * Class Grid2.
  */
-abstract class Grid2
+abstract class Grid2 implements Responsable
 {
     /**
      * @var array
@@ -152,11 +153,21 @@ abstract class Grid2
     }
 
     /**
+     * @param  \Illuminate\Http\Request|null  $request
+     * @return \Illuminate\Http\JsonResponse
+     * @deprecated
+     */
+    public function response(Request $request = null): JsonResponse
+    {
+        return $this->toResponse($request ?: request());
+    }
+
+    /**
      * @param  Request|null  $request
      *
      * @return JsonResponse
      */
-    public function response(Request $request = null): JsonResponse
+    public function toResponse($request)
     {
         $request = $request ?: request();
         $total = $this->createQuery()->count();
