@@ -133,7 +133,7 @@ abstract class Grid2 implements Responsable
         return $this->getModel()->newQuery();
     }
 
-    protected function additional(Builder $builder): array
+    protected function additional(Request $request, Builder $builder): array
     {
         return [];
     }
@@ -163,20 +163,22 @@ abstract class Grid2 implements Responsable
     }
 
     /**
-     * @param  Request|null  $request
+     * @param  Request  $request
      *
      * @return JsonResponse
      */
     public function toResponse($request)
     {
+        DB::enableQueryLog();
         $request = $request ?: request();
-        $total = $this->createQuery()->count();
+
+        $total = $this->filters($this->createQuery(), (array) $request->input('prefilters', []))->count();
 
         $query = $this->getQuery($request);
 
         $count = $query->count();
 
-        $additional = $this->additional(clone $query);
+        $additional = $this->additional($request, clone $query);
 
         foreach ($this->getOrders($request) as $order) {
             $this->orderBy($query, ...$order);
@@ -188,7 +190,7 @@ abstract class Grid2 implements Responsable
                 ->offset($request->input('start', 0));
         }
 
-        DB::enableQueryLog();
+
         $data = $this->getResult($query)->map(function (Eloquent $row) {
             return $this->prepareRow($row);
         });
@@ -220,8 +222,8 @@ abstract class Grid2 implements Responsable
      */
     public function getQuery(Request $request): Builder
     {
-
-        $query = $this->filters($this->query ?: $this->createQuery(), (array) $request->input('filters', []));
+        $query = $this->filters($this->query ?: $this->createQuery(), (array) $request->input('prefilters', []));
+        $query = $this->filters($query, (array) $request->input('filters', []));
 
         $query->where(function (Builder $query) use ($request) {
             \array_map(function (callable $handler) use ($query, $request) {
