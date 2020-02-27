@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace RabbitCMS\Carrot\Support;
@@ -110,6 +111,7 @@ abstract class Grid2 implements Responsable
                 }
             }
         }
+
         return $query;
     }
 
@@ -163,6 +165,41 @@ abstract class Grid2 implements Responsable
     }
 
     /**
+     * @param  \Illuminate\Http\Request  $request
+     * @return Builder
+     */
+    protected function getTotalQuery(Request $request): Builder
+    {
+        return $this->filters($this->createQuery(), (array) $request->input('prefilters', []));
+    }
+
+    /**
+     * @param  \Illuminate\Http\Request  $request
+     * @return int
+     */
+    protected function getTotal(Request $request): int
+    {
+        return $this->getTotalQuery($request)->count();
+    }
+
+    /**
+     * @param  \Illuminate\Http\Request  $request
+     * @return Builder
+     */
+    protected function getCountQuery(Request $request): Builder
+    {
+        return $this->getQuery($request);
+    }
+    /**
+     * @param  \Illuminate\Http\Request  $request
+     * @return int
+     */
+    protected function getCount(Request $request): int
+    {
+        return $this->getCountQuery($request)->count();
+    }
+
+    /**
      * @param  Request  $request
      *
      * @return JsonResponse
@@ -172,11 +209,11 @@ abstract class Grid2 implements Responsable
         DB::enableQueryLog();
         $request = $request ?: request();
 
-        $total = $this->filters($this->createQuery(), (array) $request->input('prefilters', []))->count();
+        $total = $this->getTotal($request);
+
+        $count = $this->getCount($request);
 
         $query = $this->getQuery($request);
-
-        $count = $query->count();
 
         $additional = $this->additional($request, clone $query);
 
