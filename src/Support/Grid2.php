@@ -9,7 +9,7 @@ use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\{Builder, Collection, Model as Eloquent};
+use Illuminate\Database\Eloquent\{Builder, Collection, Model as Eloquent, Model};
 
 /**
  * Class Grid2.
@@ -37,6 +37,12 @@ abstract class Grid2 implements Responsable
     protected $orderMap = [];
 
     /**
+     * @var Model
+     */
+    protected $resource;
+
+
+    /**
      * @param  callable  $handler
      */
     public static function addHandler(callable $handler)
@@ -53,7 +59,8 @@ abstract class Grid2 implements Responsable
         ?string $filter,
         Closure $callback = null,
         array $params = []
-    ) {
+    )
+    {
         if ($callback === null) {
             $callback = function (Builder $builder, $filter, $self, $name) {
                 $builder->where($name, $filter);
@@ -119,6 +126,7 @@ abstract class Grid2 implements Responsable
      * @param  Eloquent  $row
      *
      * @return array
+     * @deprecated Use toArray instead.
      */
     protected function prepareRow(Eloquent $row): array
     {
@@ -190,6 +198,7 @@ abstract class Grid2 implements Responsable
     {
         return $this->getQuery($request);
     }
+
     /**
      * @param  \Illuminate\Http\Request  $request
      * @return int
@@ -228,9 +237,12 @@ abstract class Grid2 implements Responsable
         }
 
 
-        $data = $this->getResult($query)->map(function (Eloquent $row) {
-            return $this->prepareRow($row);
-        });
+        $data = $this->getResult($query)
+            ->map(function (Model $resource) use ($request) {
+                $this->resource = $resource;
+
+                return $this->toArray($request);
+            });
         DB::disableQueryLog();
 
         return new JsonResponse(array_merge($additional, [
@@ -240,6 +252,11 @@ abstract class Grid2 implements Responsable
             'data' => $data,
             'query' => DB::getQueryLog(),
         ]), 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    public function toArray(Request $request): array
+    {
+        return $this->prepareRow($this->resource);
     }
 
     /**
