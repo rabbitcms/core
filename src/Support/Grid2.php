@@ -41,6 +41,11 @@ abstract class Grid2 implements Responsable
      */
     protected $resource;
 
+    /**
+     * @var bool
+     */
+    protected $limits = true;
+
 
     /**
      * @param  callable  $handler
@@ -218,9 +223,9 @@ abstract class Grid2 implements Responsable
         DB::enableQueryLog();
         $request = $request ?: request();
 
-        $total = $this->getTotal($request);
+        $total = $this->limits ? $this->getTotal($request) : 0;
 
-        $count = $this->getCount($request);
+        $count = $this->limits ? $this->getCount($request) : 0;
 
         $query = $this->getQuery($request);
 
@@ -230,7 +235,7 @@ abstract class Grid2 implements Responsable
             $this->orderBy($query, ...$order);
         }
 
-        if ($request->input('length') > 0) {
+        if ($this->limits && $request->input('length') > 0) {
             $query
                 ->limit($request->input('length', 25))
                 ->offset($request->input('start', 0));
