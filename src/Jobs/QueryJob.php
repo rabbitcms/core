@@ -1,14 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace RabbitCMS\Carrot\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Database\Eloquent\{Builder, Collection};
+use Illuminate\Database\Eloquent\{Builder, Collection, Model};
 use Illuminate\Foundation\Bus\{Dispatchable, PendingDispatch};
+use Illuminate\Support\LazyCollection;
 use RabbitCMS\Carrot\Contracts\QueryHandlerInterface;
 use ReflectionClass;
-use ReflectionException;
 
 /**
  * Class QueryJob
@@ -32,9 +33,8 @@ final class QueryJob
 
     public function __construct(Builder $builder, QueryHandlerInterface $handler, int $limit = 0)
     {
-        $query = $builder->applyScopes();
-        $this->query = $query->toSql();
-        $this->bindings = $query->getBindings();
+        $this->query = $builder->toSql();
+        $this->bindings = $builder->getBindings();
         $this->handler = $handler;
         $this->limit = $limit;
         $this->model = get_class($builder->getModel());
@@ -49,56 +49,27 @@ final class QueryJob
         return $this->handler->handle($this);
     }
 
-    /**
-     * @param  callable  $callable
-     * @param  array  $with
-     * @return mixed
-     * @throws ReflectionException
-     */
-    public function each(callable $callable, array $with = [])
+    public function each(callable $callable, array $with = [], int $chunkSize = 200): void
     {
+        /** @var Model $model */
         $model = (new ReflectionClass($this->model))->newInstance();
 
-        return $model->getConnection()->transaction(function () use ($with, $callable, $model) {
-            $index = 0;
-            $chunk = 0;
-            $collection = new Collection();
-            foreach ($model->getConnection()->cursor($this->query, $this->bindings) as $record) {
-                $collection->push($model->newFromBuilder($record));
-                $chunk++;
-                $index++;
-                if ($chunk > 200) {
-                    if (! $this->process($collection, $callable, $with, $index - $collection->count())) {
-                        break;
-                    }
-                    $collection = new Collection();
-                    $chunk = 0;
-                }
-
-                if ($this->limit && $index >= $this->limit) {
-                    break;
-                }
-            }
-
-            if ($collection->count()) {
-                $this->process($collection, $callable, $with, $index - $collection->count());
-            }
-
-            return $index;
+        $model->getConnection()->transaction(function () use ($chunkSize, $with, $callable, $model) {
+            LazyCollection::make($model->getConnection()->cursor($this->query, $this->bindings))
+                ->when($this->limit, static fn(LazyCollection $collection, int $limit) => $collection
+                    ->take($limit))
+                ->map(fn($record) => $model
+                    ->newFromBuilder($record))
+                ->when(
+                    $with,
+                    fn(LazyCollection $collection, array $with) => $collection
+                        ->chunk($chunkSize)
+                        ->each(static fn(LazyCollection $collection, $key) => Collection::make($collection)
+                            ->load($with)
+                            ->every(static fn($model, $index) => $callable($model, $index) !== false)),
+                    fn(LazyCollection $collection) => $collection
+                        ->every(static fn($model, $index) => $callable($model, $index) !== false));
         });
-    }
-
-    protected function process(Collection $collection, callable $callable, array $with, int $shift): bool
-    {
-        $collection->load($with);
-
-        foreach ($collection as $index => $model) {
-            if ($callable($model, $index + $shift + 1) === false) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     public function displayName(): string
