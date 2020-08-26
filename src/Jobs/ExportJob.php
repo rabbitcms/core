@@ -55,7 +55,7 @@ abstract class ExportJob implements QueryHandlerInterface
             $cellIndex++;
         }
 
-        $job->each(fn(Model $task, int $index) => $this->handleRow($sheet, $task, $index + 1, $cells), $this->with());
+        $job->each(fn(Model $task, int $index) => $this->handleRow($sheet, $task, $index + 2, $cells), $this->with());
 
         $spreadsheet->setActiveSheetIndex(0);
         $writer = new Xlsx($spreadsheet);
