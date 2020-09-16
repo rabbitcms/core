@@ -55,10 +55,14 @@ class ImportJob implements ShouldQueue
         $file = new SplFileInfo($this->path);
         $importer = new Importer($file, $this->encoding, $this->delimiter);
         try {
-            $log = $importer->handle($this->job);
+            $importer->handle($this->job);
         } catch (Exception $exception) {
-            $log = $importer->getLog();
+            $importer->emergency($exception->getMessage(), [
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+            ]);
         }
+        $log = $importer->getLog();
         $class = basename(str_replace('\\', '/', get_class($this->job)));
         if ($this->email) {
             $mailer->send((new class() extends Mailable {
@@ -76,7 +80,7 @@ class ImportJob implements ShouldQueue
                         json_encode($log['context'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
                     return "\"{$log['line']}\";\"{$level}\";\"{$message}\";\"{$context}\"";
-                }, $log)), 'report.csv')
+                }, $log)), 'report.csv', ['mime' => 'text/csv'])
                 ->attach($file->getPathname(), ['as' => 'source.csv'])
             );
         }
