@@ -19,6 +19,8 @@ abstract class ExportJob implements QueryHandlerInterface
 {
     protected User $user;
 
+    protected array $additional = [];
+
     public function __construct(User $user)
     {
         $this->user = $user;
@@ -55,7 +57,18 @@ abstract class ExportJob implements QueryHandlerInterface
             $cellIndex++;
         }
 
-        $job->each(fn(Model $task, int $index) => $this->handleRow($sheet, $task, $index + 2, $cells), $this->with());
+        $job->each(fn(Model $model, int $index) => $this->handleRow($sheet, $model, $index + 2, $cells), $this->with());
+
+        foreach ($this->additional as $value) {
+            $sheet->getCellByColumnAndRow($cellIndex, $rowIndex)
+                ->setDataType(DataType::TYPE_STRING)
+                ->setValue($value);
+
+            $sheet->getColumnDimensionByColumn($cellIndex)
+                ->setAutoSize(true);
+
+            $cellIndex++;
+        }
 
         $spreadsheet->setActiveSheetIndex(0);
         $writer = new Xlsx($spreadsheet);
@@ -91,5 +104,20 @@ abstract class ExportJob implements QueryHandlerInterface
                 $cell->setValue($value)->setDataType(DataType::TYPE_STRING);
             }
         }
+        foreach ($this->additional($model) as $property => $value) {
+            $cellShift = array_search($property, $this->additional);
+            if ($cellShift === false) {
+                $cellShift = array_push($this->additional, $property) - 1;
+            }
+            $cell = $sheet->getCellByColumnAndRow($cellIndex + $cellShift + 1, $rowIndex);
+            if ($value !== null) {
+                $cell->setValue($value)->setDataType(DataType::TYPE_STRING);
+            }
+        }
+    }
+
+    protected function additional(Model $model): array
+    {
+        return [];
     }
 }
