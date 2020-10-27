@@ -9,7 +9,7 @@ use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\{Builder, Collection, Model as Eloquent, Model};
+use Illuminate\Database\Eloquent\{Builder, Collection, Model};
 
 /**
  * Class Grid2.
@@ -58,14 +58,13 @@ abstract class Grid2 implements Responsable
     /**
      * @param  string|null  $filter
      * @param  \Closure  $callback
-     * @param  array  $params  [only,except,terminate]
+     * @param  array  $params [only,except,terminate]
      */
     public static function addFilter(
         ?string $filter,
         Closure $callback = null,
         array $params = []
-    )
-    {
+    ) {
         if ($callback === null) {
             $callback = function (Builder $builder, $filter, $self, $name) {
                 $builder->where($name, $filter);
@@ -76,9 +75,19 @@ abstract class Grid2 implements Responsable
     }
 
     /**
+     * @param  Model  $resource
+     * @return $this
+     */
+    public function withResource(Model $resource): self
+    {
+        $this->resource = $resource;
+
+        return $this;
+    }
+
+    /**
      * @param  Builder  $query
-     *
-     * @return Grid2
+     * @return $this
      */
     public function setQuery(Builder $query): Grid2
     {
@@ -88,9 +97,9 @@ abstract class Grid2 implements Responsable
     }
 
     /**
-     * @return Eloquent
+     * @return Model
      */
-    abstract public function getModel(): Eloquent;
+    abstract public function getModel(): Model;
 
     /**
      * @param  Builder  $query
@@ -128,12 +137,12 @@ abstract class Grid2 implements Responsable
     }
 
     /**
-     * @param  Eloquent  $row
+     * @param  Model  $row
      *
      * @return array
      * @deprecated Use toArray instead.
      */
-    protected function prepareRow(Eloquent $row): array
+    protected function prepareRow(Model $row): array
     {
         return $row->attributesToArray();
     }
