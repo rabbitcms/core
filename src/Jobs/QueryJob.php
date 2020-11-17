@@ -7,6 +7,7 @@ namespace RabbitCMS\Carrot\Jobs;
 use Illuminate\Bus\Queueable;
 use Illuminate\Database\Eloquent\{Builder, Collection, Model};
 use Illuminate\Foundation\Bus\{Dispatchable, PendingDispatch};
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\LazyCollection;
 use RabbitCMS\Carrot\Contracts\QueryHandlerInterface;
 use ReflectionClass;
@@ -16,7 +17,7 @@ use ReflectionClass;
  * @method static PendingDispatch dispatch(Builder $builder, QueryHandlerInterface $handler, int $limit = 0)
  * @method static mixed dispatchNow(Builder $builder, QueryHandlerInterface $handler, int $limit = 0)
  */
-final class QueryJob
+final class QueryJob implements ShouldQueue
 {
     use Dispatchable;
     use Queueable;
