@@ -50,27 +50,22 @@ final class QueryJob implements ShouldQueue
         return $this->handler->handle($this);
     }
 
-    public function each(callable $callable, array $with = [], int $chunkSize = 200): void
+    public function each(callable $callable, array $with = [], int $chunkSize = 200, bool $wrap = true): void
     {
         /** @var Model $model */
         $model = (new ReflectionClass($this->model))->newInstance();
-
-        $model->getConnection()->transaction(function () use ($chunkSize, $with, $callable, $model) {
-            LazyCollection::make($model->getConnection()->cursor($this->query, $this->bindings))
-                ->when($this->limit, static fn(LazyCollection $collection, int $limit) => $collection
-                    ->take($limit))
-                ->map(fn($record) => $model
+        $connection = $model->getConnection();
+        $connection->transaction(fn() => LazyCollection::make($connection->cursor($this->query, $this->bindings))
+            ->when($this->limit, static fn(LazyCollection $collection, int $limit) => $collection
+                ->take($limit))
+            ->when($wrap, static fn(LazyCollection $collection) => $collection
+                ->map(static fn($record) => $model
                     ->newFromBuilder($record))
-                ->when(
-                    $with,
-                    fn(LazyCollection $collection, array $with) => $collection
-                        ->chunk($chunkSize)
-                        ->each(static fn(LazyCollection $collection, $key) => Collection::make($collection)
-                            ->load($with)
-                            ->every(static fn($model, $index) => $callable($model, $index) !== false)),
-                    fn(LazyCollection $collection) => $collection
-                        ->every(static fn($model, $index) => $callable($model, $index) !== false));
-        });
+                ->when($with, static fn(LazyCollection $collection, array $with) => $collection
+                    ->chunk($chunkSize)
+                    ->each(static fn(LazyCollection $collection) => Collection::make($collection)->load($with))
+                    ->flatten(1)))
+            ->every(static fn($model, $index) => $callable($model, $index) !== false));
     }
 
     public function displayName(): string
