@@ -63,7 +63,7 @@ final class QueryJob implements ShouldQueue
                     ->newFromBuilder($record))
                 ->when($with, static fn(LazyCollection $collection, array $with) => $collection
                     ->chunk($chunkSize)
-                    ->each(static fn(LazyCollection $collection) => Collection::make($collection)->load($with))
+                    ->map(static fn(LazyCollection $collection) => Collection::make($collection)->load($with))
                     ->flatten(1)))
             ->every(static fn($model, $index) => $callable($model, $index) !== false));
     }
