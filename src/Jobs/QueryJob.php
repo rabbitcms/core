@@ -55,7 +55,11 @@ final class QueryJob implements ShouldQueue
         /** @var Model $model */
         $model = (new ReflectionClass($this->model))->newInstance();
         $connection = $model->getConnection();
-        $connection->transaction(fn() => LazyCollection::make($connection->cursor($this->query, $this->bindings))
+        $connection->transaction(fn() => LazyCollection::make(function () {
+            foreach ($connection->cursor($this->query, $this->bindings) as $record) {
+                yield $record;
+            }
+        })
             ->when($this->limit, static fn(LazyCollection $collection, int $limit) => $collection
                 ->take($limit))
             ->when($wrap, static fn(LazyCollection $collection) => $collection
