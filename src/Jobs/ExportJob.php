@@ -111,7 +111,8 @@ abstract class ExportJob implements QueryHandlerInterface
             }
             $cell = $sheet->getCellByColumnAndRow($cellIndex + $cellShift + 1, $rowIndex);
             if ($value !== null) {
-                $cell->setValue($value)->setDataType(DataType::TYPE_STRING);
+                $cell->setValue($value)
+                    ->setDataType(is_numeric($value) ? DataType::TYPE_NUMERIC : DataType::TYPE_STRING);
             }
         }
     }
